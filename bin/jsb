@@ -1,0 +1,125 @@
+#!/usr/bin/env python2.7
+#
+#
+
+""" Console Bot. """
+
+
+#import warnings
+#warnings.simplefilter("ignore")
+
+## bootstrap
+
+import os, sys
+sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.getcwd() + os.sep + "..")
+
+
+## etc
+
+from jsb.version import getversion
+
+from jsb.utils.log import setloglevel
+
+## command line parsing
+
+from optparse import OptionParser
+parser = OptionParser(usage='usage: %prog [options] <appid>', version='%prog ' + getversion())
+parser.add_option('-d', '--datadir', type='string', default=False, dest='datadir', help="datadir to use")
+parser.add_option('-c', '--channel', type='string', default=False, dest='channel', help="channel to operate on")
+parser.add_option('-n', '--name', type='string', default=False, dest='name', help="name of the console bot")
+parser.add_option('-l', '--loglevel', type='string', default=False, dest='loglevel', help="logging level")
+parser.add_option('', '--nocbs', type='string', default=False, dest='nocbs', help="callback types to exclude from running")
+parser.add_option('-f', '--fast', action="store_true", default=False, dest='fast', help="boot fast (dont load myplugs)")
+parser.add_option('', '--nocolors', action="store_true", default=False, dest='nocolors', help="enable the use of colors")
+parser.add_option('', '--fleet', action="store_true", default=False, dest='fleet', help="start the fleet")
+parser.add_option('', '--nourl', action="store_true", default=False, dest='nourl', help="disable geturl functionality")
+parser.add_option('', '--lazy', action="store_true", default=False, dest='lazy', help="enable lazy importing")
+
+opts, args = parser.parse_args()
+opts.args = args
+
+if not opts.args: print getversion('CONSOLE')
+if opts.lazy:
+    from jsb.contrib import lazyimport
+    lazyimport.install()
+if opts.datadir:
+    if not os.path.isdir(opts.datadir): os.mkdir(opts.datadir)
+    from jsb.lib.datadir import setdatadir
+    setdatadir(opts.datadir)
+
+## make config from cmndline options
+
+from jsb.utils.log import setloglevel
+setloglevel(opts.loglevel or "error", not opts.nocolors)
+
+if opts.nourl:
+    from jsb.utils.url import url_disable
+    url_disable()
+
+from jsb.lib.boot import boot
+if opts.fast: boot(opts.datadir, fast=True)
+else: boot(opts.datadir)
+
+## jsb imports
+
+from jsb.utils.exception import handle_exception
+from jsb.utils.generic import waitforqueue, waitevents
+from jsb.drivers.console.bot import ConsoleBot
+from jsb.lib.config import Config
+from jsb.lib.errors import NoOwnerSet, NoSuchCommand
+from jsb.lib.commands import cmnds
+from jsb.lib.exit import globalshutdown
+from jsb.lib.fleet import getfleet
+from jsb.lib.threads import start_new_thread
+from jsb.lib.datadir import getdatadir
+
+## basic imports
+
+import getpass
+import time
+import logging
+
+## start the bot
+name = opts.name or "default-console"
+cfg = Config("fleet" + os.sep + name + os.sep + 'config')
+if not cfg.owner: cfg.owner = []
+userid = getpass.getuser() + '@' + cfg.uuid
+
+if userid not in cfg.owner: cfg.owner.append(userid) ; cfg.save()
+
+try:
+    bot = ConsoleBot(cfg, nocbs=opts.nocbs)
+except NoOwnerSet:
+    print "the owner is not set in %s" % cfg.cfile
+    os._exit(1)
+
+if opts.args:
+    cmndstring = ";"
+    for cmnd in opts.args:
+        if "|" in cmnd: break
+        cmndstring += u"%s " % unicode(cmnd)
+    event = bot.make_event(userid, opts.channel or userid, cmndstring.strip(), showall=True)
+    event.directoutput = True
+    event.nodispatch = False
+    try: event.execute(True)
+    except NoSuchCommand, ex: print "no %s command found." % str(ex).strip()
+    print ""
+    try:
+        sys.stdout.close()
+    except: pass
+    os._exit(0)
+
+print "datadir is %s" % getdatadir()
+bot.start(False)
+if bot.maincfg.dbenable: print "dbtype is %s" % bot.maincfg.dbtype
+fleet = getfleet()
+fleet.addbot(bot)
+
+if opts.fleet:
+    bots = fleet.loadall()
+    logging.error("starting fleet %s" % fleet.list())
+    start_new_thread(fleet.startall, ())
+
+bot.startshell()
+globalshutdown()

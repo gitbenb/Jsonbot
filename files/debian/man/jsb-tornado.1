@@ -1,0 +1,45 @@
+.TH JSONBOT 1 "22 Nov 2011" "Debian GNU/Linux" "jsb manual"
+.SH NAME
+.B jsb-tornado \- The JSONBOT web console
+.SH SYNOPSIS
+.B jsb-tornado
+is the web console program build on the JSONBOT framework
+.P
+.B 
+.SH "DESCRIPTION"
+.P
+.B jsb-tornado
+runs on port 10102 and when accesed gives a web console that you can use to
+give commands and receive notifications on.
+.PP
+.SH USAGE
+.P
+.B Usage: jsb-tornado [options]
+
+Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -r PATH               resume the bot from the folder specified
+  -o OWNER, --owner=OWNER
+                        owner of the bot
+  -d DATADIR, --datadir=DATADIR
+                        datadir to use
+  -l LOGLEVEL, --loglevel=LOGLEVEL
+                        logging level
+  -p PORT, --port=PORT  servers listening port
+  -f, --fleet           enable the fleet
+  -b, --bork            bork on exception
+  --colors              enable the use of colors in logging
+  --ssl                 enable ssl on the server
+
+.SH "DOCUMENTATION"
+See http://jsonbot.org for more documentation or see
+http://jsonbot.googlecode.com
+
+.SH "SEE ALSO"
+jsb(1), jsb-backup(1), jsb-init(1), jsb-irc(1), jsb-xmpp(1), jsb-fleet(1),
+jsb-stop(1), jsb-udp(1), jsonbot(1)
+
+.SH AUTHOR
+This manual page was written by Bart Thate <bthate@gmail.com>,
+for the Debian GNU/Linux system (but may be used by others).

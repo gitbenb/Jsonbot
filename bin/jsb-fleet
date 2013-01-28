@@ -1,0 +1,97 @@
+#!/usr/bin/env python2.7
+#
+#
+
+""" run multiple bot instances in 1 program. """
+
+## bootstrap
+
+#import warnings
+#warnings.simplefilter("ignore")
+
+import os, sys, logging
+sys.path.insert(0, os.getcwd())
+
+## basic imports
+
+import logging
+import time
+import signal
+
+## options parser
+
+from jsb.utils.opts import makefleetopts
+
+opts = makefleetopts()
+if opts.lazy:
+    from jsb.contrib import lazyimport
+    lazyimport.install()
+from jsb.lib.datadir import setdatadir, getdatadir
+if opts.datadir: setdatadir(opts.datadir)
+
+from jsb.version import getversion
+print getversion('FLEET')
+
+## jsb imports
+
+from jsb.lib.partyline import partyline
+from jsb.lib.datadir import makedirs
+from jsb.lib.boot import boot
+from jsb.lib.exit import globalshutdown
+from jsb.utils.mainloop import mainloop
+from jsb.lib.users import users_boot
+from jsb.lib.threads import start_new_thread
+from jsb.utils.exception import handle_exception
+import jsb
+
+from jsb.lib.fleet import getfleet
+fleet = getfleet(opts.datadir)
+if opts.all or opts.show:
+    avail = fleet.avail()
+    if avail: sys.stdout.write("available bots: " + ", ".join(avail) + ".")
+    else: sys.stdout.write("no bots available.")
+
+if opts.all: print "" ; os._exit(0)
+
+# provide sigterm support
+def dostop(a, b):
+    """ sig handler """
+    globalshutdown()
+
+signal.signal(signal.SIGTERM, dostop)
+
+if not fleet.avail(): logging.error("fleet - no bots found.") ; os._exit(1)
+
+## loglevel
+
+from jsb.utils.log import setloglevel
+setloglevel(opts.loglevel or "warn", not opts.nocolors) 
+
+## start the fleet
+
+boot(opts.datadir)
+
+if opts.owner:
+    users = users_boot()
+    users.make_owner(opts.owner)
+
+def doresume():
+    try:
+        fleet.resume(opts.doresume)
+        fleet.startok.wait()
+        partyline.resume(opts.doresume)
+        time.sleep(1)
+        os.unlink(opts.doresume)
+    except: handle_exception()
+
+if opts.doresume: start_new_thread(doresume, ())
+else:
+    if opts.args: todo = opts.args
+    elif opts.useall: todo = fleet.avail()
+    else: todo = []
+    start_new_thread(fleet.boot, (todo , ["tornado", "console"]))
+
+if opts.api:
+    from jsb.api import server
+    server.runapiserver(opts.apiport)
+else: mainloop()

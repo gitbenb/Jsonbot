@@ -1,0 +1,40 @@
+.TH JSONBOT 1 "22 Nov 2011" "Debian GNU/Linux" "jsb manual"
+.SH NAME
+.B jsb-backup \- The JSONBOT backup app
+.SH SYNOPSIS
+.B jsb-backup
+is used to make backup of the datadir used by JSONBOT
+.P
+
+.B 
+.SH "DESCRIPTION"
+.B jsb-backup
+does a backup of the JSONBOT datadir (defaults to ~/.jsb) to ~/jsb-backups directory. 
+.PP
+.SH USAGE
+.P
+.B Usage: jsb-backup [options] 
+
+Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -d DATADIR, --datadir=DATADIR
+                        datadir to use
+  -t TARGET, --target=TARGET
+                        target dir
+  -l LOGLEVEL, --loglevel=LOGLEVEL
+                        logging level
+  --colors              enable the use of colors
+
+
+.SH "DOCUMENTATION"
+See http://jsonbot.org for more documentation or see
+http://jsonbot.googlecode.com
+
+.SH "SEE ALSO"
+jsb(1), jsb-init(1), jsb-irc(1), jsb-fleet(1), jsb-sed(1), jsb-tornado(1), jsb-xmpp(1),
+jsb-stop(1), jsb-udp(1), jsonbot(10 
+
+.SH AUTHOR
+This manual page was written by Bart Thate <bthate@gmail.com>,
+for the Debian GNU/Linux system (but may be used by others).

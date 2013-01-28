@@ -1,0 +1,92 @@
+#!/usr/bin/env python2.7
+#
+#
+
+## bootstrap
+
+import warnings
+warnings.simplefilter("ignore")
+
+## basic imports
+
+import logging
+import time
+import os
+import sys
+
+## sys.path manipulation
+
+sys.path.insert(0, os.getcwd())
+
+## print version
+
+from jsb.version import getversion
+print getversion('SLEEK')
+
+## options parser
+
+from jsb.utils.opts import makesxmppopts
+opts = makesxmppopts()
+if opts.lazy:
+    from jsb.contrib import lazyimport
+    lazyimport.install()
+from jsb.utils.log import setloglevel
+setloglevel(opts.loglevel or "warn", not opts.nocolors)
+
+## set datadir early on
+
+if opts.datadir:
+    if not os.path.isdir(opts.datadir): os.mkdir(opts.datadir)
+    from jsb.lib.datadir import setdatadir
+    setdatadir(opts.datadir)
+
+## remaining jsb imports
+
+from jsb.lib.boot import boot
+from jsb.lib.errors import NoOwnerSet
+from jsb.lib.fleet import getfleet
+from jsb.lib.exit import globalshutdown
+from jsb.utils.exception import handle_exception
+from jsb.utils.mainloop import mainloop
+from jsb.lib.threads import start_new_thread
+
+## boot the bot
+
+boot(opts.datadir)
+
+## create bots config
+
+from jsb.utils.opts import makesxmppconfig
+try: cfg = makesxmppconfig(opts, botname = opts.name or "default-sleek", type="sleek")
+except Exception, ex: print str(ex) ; os._exit(1) 
+cfg.type = "sleek"
+if not cfg.user and not opts.user: logging.error("no user set .. use the -u option") 
+got = False
+if opts.nick: cfg.nick = opts.nick ; got = True
+if opts.port: cfg.port = opts.port ; got = True
+if opts.user: cfg.user = opts.user ; got = True
+if opts.password: cfg.password = opts.password ; got = True
+if cfg.disabled: cfg.disabled = 0 ; got = True
+if got: cfg.save()
+
+## start the bot
+
+try:
+    from jsb.drivers.sleek.bot import SleekBot
+    bot = SleekBot(cfg, register=opts.doregister)
+except NoOwnerSet, ex:
+    print "owner is not set in %s - use the -o option" % str(ex)
+    os._exit(1)
+
+if opts.channel and not opts.channel in bot.state['joinedchannels']:
+    bot.state['joinedchannels'].append(opts.channel)
+    bot.state.save()
+
+try:
+    logging.warn("starting sleekxmpp bot with user %s" % bot.cfg.user)
+    start_new_thread(bot.boot, ())
+except KeyboardInterrupt: globalshutdown()
+except: handle_exception() ; globalshutdown()
+
+if opts.api: from jsb.api import server ; server.runapiserver(opts.apiport)
+else: mainloop()

@@ -1,0 +1,72 @@
+#!/usr/bin/env python2.7
+#
+#
+
+""" Console Bot. """
+
+
+#import warnings
+#warnings.simplefilter("ignore")
+
+## bootstrap
+
+from subprocess import Popen, PIPE
+import os
+import sys
+import time
+
+sys.path.insert(0, os.getcwd())
+
+from jsb.version import getversion
+
+## command line parsing
+
+from optparse import OptionParser
+parser = OptionParser(usage='usage: %prog [options] <appid>', version='%prog' + getversion())
+parser.add_option('-d', '--datadir', type='string', default=False, dest='datadir', help="datadir to use")
+parser.add_option('-t', '--target', type='string', default=False, dest='target', help="target dir")
+parser.add_option('-l', '--loglevel', type='string', default=False, dest='loglevel', help="logging level")
+parser.add_option('', '--colors', action="store_true", default=False, dest='colors', help="enable the use of colors")
+opts, args = parser.parse_args()
+opts.args = args
+
+print getversion('BACKUP')
+
+from jsb.utils.log import setloglevel
+setloglevel(opts.loglevel or "warn", opts.colors)
+
+from jsb.utils.generic import gethighest
+from jsb.utils.popen import Popen 
+from jsb.lib.datadir import getdatadir
+
+if opts.datadir: ddir = opts.datadir
+elif opts.args: ddir = opts.args[0] 
+else: ddir = getdatadir()
+print "source is %s" % ddir
+
+if not os.path.isdir(ddir): print "can't find %s directory" % ddir ; os._exit(1)
+home = os.path.expanduser("~")
+print "home is %s" % home
+
+if opts.target: target = opts.target
+else: target = home + os.sep + "jsb-backups"
+if not os.path.isdir(target): os.mkdir(target)
+print "target is %s" % target
+
+targetfile = target + os.sep + "jsb.backup.tar.gz"
+
+if os.path.isfile(targetfile):
+    highest = gethighest(target, "jsb.backup.tar.gz")
+    print "renaming backup tar to %s" % highest
+    os.rename(targetfile, target + os.sep + highest)
+
+if 'linux' in  str(os.uname()).lower():
+    execstring = "tar zvcfp %s --totals --exclude-tag-under=SKIP --show-transformed-names --transform=s#%s## %s" % (targetfile, home[1:] + os.sep, ddir)
+else:
+    execstring = "tar zvcfp %s %s" % (targetfile, ddir)
+
+print "starting backup - %s" % execstring
+time.sleep(3)
+proc = Popen(execstring.split())
+proc.wait()
+print "done!"

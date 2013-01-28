@@ -1,0 +1,4 @@
+backends:
+    - name: dispatcher  
+      class: B1        
+      options: dynamic

@@ -1,0 +1,920 @@
+<html>
+  <head>
+    <style type="text/css"> 
+
+      /*  page layout */
+
+      body {
+        font-family: sans-serif;
+        width: 100%;
+        position: fixed;
+        top: 0;
+        padding: 0 0 0 0px;
+        border: 0 0 0 0px;
+        margin: 0px;
+        align: center;
+      }
+
+      /* divs */
+
+      div.bodywrapper {   
+        font-family: sans-serif;
+        height: 80%;
+        width: 100%;
+        position: fixed;
+        margin-left: 0px;
+        align: center;
+      }
+
+      div.bottom {
+        font-family: sans-serif;
+        bottom: 0;   
+        align: center;
+        font-weight: bold;
+        position: fixed;
+        width: 100%;
+        margin-left: 0px;
+      }
+
+      div.news {
+        font-family: sans-serif;
+        overflow: auto;
+        align: center; 
+        height: 50%;   
+        top: 30%;
+      }
+
+      div.output {
+        font-family: sans-serif;
+        overflow: auto;
+        align: center; 
+        height: 50%;   
+        top: 30%;
+      }
+ 
+      div.screen {
+        font-family: sans-serif;
+        position: fixed;
+        bottom: 0;
+        align: center;
+        width: 90%;
+      }
+
+      div.footer {
+        font-family: sans-serif;
+        color: #ffffff;
+        align: center; 
+        font-height: 80%;
+      }
+ 
+      div.footer a {
+        color: red;
+        text-decoration: underline;
+      }
+ 
+      div.related {
+        font-family: sans-serif;
+        text-align: left;
+        line-height: 30px;
+        background-color: black;
+        color: white;
+      }
+
+      div.related a {
+        color: #ffffff;  
+        text-align: left;
+      }
+
+      div.related a:hover {
+        text-decoration: underline;
+        color: red;
+      }
+ 
+      div.related ul {
+        padding 0 0 0 10px
+        list-style: none; 
+      }
+ 
+      div.related li {
+        display: inline;
+        align: left;
+      }
+ 
+      div.related li.right {
+        float: right;
+        margin-right: 5px;
+      }
+
+      div.scroll {
+        height: 200px;
+        width: 90%;
+        overflow: auto;
+        align: center;
+      }
+
+      /* body styles */
+
+      div.body {
+        margin-top: 0;
+        color: #000000;  
+        overflow: auto;
+        align: center;
+        font-family: sans-serif;
+      }
+
+      body h1 { margin-top: 0; font-size: 320%; color: #FFFFFF; background-color: #AD6666; }
+      body h2 { font-size: 180%; }
+      body h3 { font-size: 160%; }
+      body h4 { font-size: 140%; }
+      body h5 { font-size: 120%; }
+      body h6 { font-size: 100%; }
+
+    </style>
+    <script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+    <script type="text/javascript">
+      // vars
+      var host = "{{ host }}";
+      var hostname = window.location.host;
+      var incomingurl = document.URL;
+      var port = window.location.port;
+      var url = "{{ url }}";
+      var starttime = new Date();
+      var interval_id;
+      var lastpolled = new Date();
+      var lpdate = lastpolled.getTime();
+      var sleeptime = 180000;
+      var host = "";
+      var viewer = "";
+      var hostid = "";
+      var viewerid = "";
+      var parameters = "";
+      var identtime = new Date();
+      var diskname = host + identtime.toString();
+      var log = [];
+      var Cmndlog = [];
+      var cmndindex = Cmndlog.length;
+      var History = [];
+      var historyindex = History.length;
+      var debug = false;
+      var lastseen = 0;
+
+      // jQuery stuff
+
+      $(function(){
+
+          $('#dialog').dialog({ 
+              autoOpen: false,
+              width: 600,
+              buttons: {
+                  "Ok": function() { 
+                      $(this).dialog("close");
+                  }, 
+                  "Cancel": function() { 
+                      $(this).dialog("close");
+                  },
+              }
+          });
+
+          // Dialog Link
+          $('#dialog_link').click(function(){ 
+             $('#dialog').dialog('open'); 
+             return false;
+          });
+
+          $('#dialog_link, ul#icons li').hover(
+             function() {
+                 $(this).addClass('ui-state-hover'); },
+             function() {
+                 $(this).removeClass('ui-state-hover'); }  
+          );
+
+      });
+
+
+      function scrollToBottom(elm_id) {
+	var elm = document.getElementById(elm_id);
+        var f = document.createElement("input");
+        if (f.setAttribute) f.setAttribute("type","text")
+        if (elm.appendChild) elm.appendChild(f);
+        f.style.width = "0px";
+        f.style.height = "0px";
+        if (f.focus) f.focus();
+        if (elm.removeChild) elm.removeChild(f);
+      }
+
+      // output functions
+
+      function dooutput(text, div, how) {
+          var element = document.getElementById(div);
+          if (!element) {
+              return true;
+          }
+          if (div == "news_div") {
+              text = "<i>" + text + "</i>";
+          }
+          if (how == "marquee") {
+              var t = '<marquee behaviour="slide" direction="left">' + text + "</marquee>";
+              element.innerHTML = t;
+          }
+          else if (how == "overwrite"){
+              element.innerHTML = text;
+          }
+          else if( how == "background") {
+              element.innerHTML = text;
+          }
+          else if (how == "add") {
+              element.innerHTML += text;
+              scrollToBottom(div);
+          }
+          else {
+              element.innerHTML = text;
+              //scrollToBottom(div);
+          }
+          document.forms[0].cmnd.focus();
+      }
+
+      // clear div
+
+      function clear(divname) {
+        var element = document.getElementById(divname);  
+        element.innerHTML = "<b>[!]</b>";
+      }
+
+      // utils functions
+
+      function elapsed() {
+        last = new Date();
+        diff = last.getTime() - starttime.getTime();
+        starttime = last;
+        return diff;
+      }
+
+      // mainloop
+
+      function updateloop() {
+        update();
+      }
+
+      // time loop
+
+      function timeloop() {
+        var now = new Date();
+        dooutput("<b>" + now.toTimeString() + "</b>", "uber_div", "overwrite");
+      }
+
+      // websocket 
+
+      function createsocket() {
+          var ws = new WebSocket(url);
+          ws.onopen = function () {
+              var t = new Date();
+              dooutput("channel openend on " + t.toTimeString(), "status_div", "overwrite");
+              dooutput("channel openend on " + t.toTimeString(), "info_div", "overwrite");
+              dosocket("", "", "");
+          }
+          ws.onmessage = function (evt) {
+              var data = JSON.parse(evt.data);
+              var event = JSON.parse(data['payload']);
+              if (event['how'] != "background") {
+                  History.push(evt.data);
+                  dooutput("current: " + historyindex + " new: " + (History.length-lastseen-1) + " last: " + (History.length-1), "topper_div", "overwrite");
+              }
+              if (event['execstr']) {
+                  handlesocket(evt.data);
+              }
+              if (event['headlines']) {
+                  dooutput(event['txt'], "news_div", "overwrite");
+              }
+              if (!event['debug']) {
+                  dooutput("", "json_div", "overwrite");
+              }
+          }
+          ws.onclose = function (evt) {
+              var tt = new Date();
+              dooutput("channel closed on " + tt.toTimeString(), "status_div", "overwrite");
+              //setTimeout("ws = createsocket();", 5000);
+          }
+          return ws;
+      }
+
+      // INIT
+
+
+      function start() {
+          ws = createsocket();
+          setTimeout("doSocket('!version', 'content_div', 'overwrite');", 100);
+          setTimeout("doSocket('!topper', 'info_div', 'background');", 200);
+          setTimeout("doSocket('!statusline', 'topper_div', 'background');", 1000);
+          setTimeout('setInterval("timeloop();", 1000);', 5000);
+      }
+
+      function init() {
+        setTimeout("consolestart();", 50);
+      }
+
+      function consolestart() {
+          dooutput("<b>WELCOME</b>", "uber_div", "overwrite");
+          setTimeout("start();", 100);
+      }
+
+      function dohistory(index) {
+          var i = index * 1;
+          if (i <= 0) { 
+              historyindex = 0;
+              i = 0;
+          }
+          else if (i > History.length-1) {
+              historyindex = History.length-1;
+              i = historyindex;
+          }
+          var res = History[i];
+          if (res) {
+              handlesocket(res);
+          }
+          if (historyindex > lastseen) {
+              lastseen = historyindex;
+          }
+          return false;
+      }
+
+      function showcmnd(index) {
+          var i = index * 1;
+          if (i < 0) { 
+              cmndindex = Cmndlog.length-1;
+              i = cmndindex;
+              return false;
+          }
+          else if (i > Cmndlog.length-1) {
+              cmndindex = 0;
+              i = cmndindex;  
+              document.forms[0].cmnd.value = "";
+              return false;
+          }
+          var cmnd = Cmndlog[i];
+          if (cmnd) {
+              document.forms[0].cmnd.value = cmnd;
+              dooutput("(" + i + ")" + " " + cmnd, "status_div", "overwrite");
+          }
+          return false;
+      }
+
+      // handler function
+
+      function handlesocket(message) {
+          var data = JSON.parse(message);
+          var event = JSON.parse(data['payload']);
+          if (historyindex > lastseen) {
+              lastseen = historyindex;
+          }
+          dooutput("(" + event['nick'] + ") " + event['userhost'] + " on channel " + event['origin'], "channel_div", "overwrite");
+          var curtime = new Date();
+          var offset = curtime.getTimezoneOffset(); 
+          var ctime = event['ctime'];
+          var t = new Date(ctime*1000);
+          dooutput(t.toDateString() + " " + t.toTimeString(), "date_div", "overwrite");
+          dooutput("current: " + historyindex + " new: " + (History.length-lastseen-1) + " last: " + (History.length-1), "topper_div", "overwrite");
+          dooutput("OK", "status_div", "background"); 
+          if (event['how'] == "background") {
+             dooutput(event['txt'], event['div'], "background");
+             return false;
+          }
+          if (event["debug"]) {
+              dooutput(message, "json_div", "overwrite");
+          }
+          else {
+              dooutput("", "json_div", "overwrite");
+          }
+          if (!event['div']) {
+              dooutput(event['txt'], "content_div", "overwrite");
+          }
+          if (event['execstr']) {
+              dooutput("command: " + event['execstr'] + "<br><br>", 'cmnd_div', 'overwrite');
+          }
+          else {
+              dooutput("", 'cmnd_div', 'overwrite');
+          }
+          dooutput(event['txt'], event['div'], event['how']);
+          return false;
+      }
+      
+      // write command over the socket
+
+      function doSocket(cmnd, target, how) {
+          dooutput("sending to " + url, "status_div", "background"); 
+          var data = {"cmnd": cmnd, "how": how, "target": target };
+          Cmndlog.push(cmnd);
+          ws.send(JSON.stringify(data));
+          return false;
+      }
+
+      // function to launch on enter in the command box
+
+      function doexec(e) {
+        var form = document.forms[0];
+        var keycode;
+        if (window.event) keycode = window.event.keyCode;
+           else if (e) keycode = e.which;
+        else return true;
+        dooutput(keycode, "status_div", "overwrite");
+        if (keycode == 13) {
+            var cmnd = form.cmnd.value;
+            doSocket(cmnd, "content_div", "overwrite");
+            form.cmnd.value = "";
+            form.focus();
+            historyindex = History.length;
+            return false;
+        }
+        else if (keycode == 35) {
+            historyindex = History.length;
+            dohistory(historyindex);
+            return false;
+        }
+        else if (keycode == 36) {
+            historyindex = 0;
+            dohistory(historyindex);
+            return false;
+        }
+        else if (keycode == 40) {
+            cmndindex += 1;
+            showcmnd(cmndindex);
+            return false;
+        }
+        else if (keycode == 38) {
+            cmndindex -= 1;
+            showcmnd(cmndindex);
+            return false;
+        }
+        else if (keycode == 34) {
+            historyindex -= 1;   
+            dohistory(historyindex);
+            return false;
+        }
+        else if (keycode == 33) {
+            historyindex += 1;   
+            dohistory(historyindex);
+            return false;
+        }
+        else if (keycode == 45) {
+            doSocket("!more", "content_div", "overwrite");
+            return false;
+        }
+        else {
+          return true;
+        }
+      }
+
+      // XHR
+      
+      function response(obj) {
+          dooutput(obj.readyState, "status_div", "background");
+          if (obj.readyState==4){
+              dooutput(obj.status, "status_div", "background");
+              if (obj.status==200) {
+                   dooutput(obj.responseText, "content_div", "overwrite");
+              }
+              else {
+                   dooutput(obj.status, "content_div", "overwrite");
+              }
+          }
+      }
+
+      function doCmnd(cmnd, resp, how) {
+          var request = false;
+          if (window.XMLHttpRequest) {
+              request = new XMLHttpRequest();
+          }
+          else if (window.ActiveXObject) { 
+              try {
+                  request = new ActiveXObject("Msxml2.XMLHTTP");
+              } catch (e) {
+                  try {
+                      request = new ActiveXObject("Microsoft.XMLHTTP");
+                  } catch (e) {}
+              }
+          }
+          if (!request) {
+              dooutput("can't make connection to server", "topper_div", "background");
+              return false;
+          }
+          request.cmnd = cmnd;
+          request.how = how;
+          request.onreadystatechange = function () {
+              resp(request);
+          }
+          dooutput(url, "status_div", "background");
+          request.open("POST", url, true);
+          request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+          request.setRequestHeader("Content-Length", parameters.length);
+          request.setRequestHeader("Cache-Control", "no-cache");
+          parameters="content="+encodeURIComponent(cmnd) + "&how=" + encodeURIComponent(how);
+          starttime = new Date();
+          request.send(parameters);
+          dooutput(" - " + cmnd, "status_div", "channel");
+          return true;
+      }
+   </script>
+</head>
+<body style="margin: 0px; background-color; white color: black;" align="center" onLoad="init();" >
+   <title>{{ host }}</title>
+      <div class="related">
+        <ul>
+          <li class="right">
+            <a href="{{ logouturl }}" title="logout">logout</i></a></li>
+          <li class="right" style="color: white; margin-right: 5px;">{{ who }}<b> - </b></li>
+          <li><a href="http://jsonbot.org/index.html" onclick='window.open("http://jsonbot.org/index.html"); return false'><b>DOCS</b></a></li>
+        </ul>
+      </div>
+      <div class="body" align="center">
+        <div align="center" id="uber_div">Morning !!</div>
+        <div align="center"><h1><b>{{ appname }}</b></h1></div>
+        <span class="body" style="font-size: 120%; color: {{ color }};" id="topper_div"></span><br><br>
+        <span class="center" style="font-size: 110%; font-weight: bold; align: center;" id="news_div">RSS feeds etc. appear here</span>
+        <table id="grant_table">
+          <br><br>
+          <span class="output" style="font-size: 120%; font-weight: bold; align: center;" id="channel_div"></span>
+          <br><br><i>
+          <span class="output" style="font-size: 100%; align: center;" id="date_div"></span>
+          </i><br><br>
+          <span class="output" style="background-color: {{ color }}; color: white; font-size: 120%; align: center;" id="cmnd_div"></span>
+          <br>
+          <div class="scroll"><span class="output" style="font-size: 140%; align: center;" id="content_div"></span></div>
+          <br><br>
+          <span class="output" style="align: center;" id="json_div"></span>
+        </table>
+        <div id="dialog" title="Dialog ME !">Yooo!</div>
+        <div class="bottom" style="font-size: 100%; color: #C54848;  font-weight: italic;">
+          <div  id="info_div"></div><br>
+          <div class="footer" style="background-color: {{ color }}; font-size:
+          120%;"><i></i><br><form><b>&lt;-</b><input style="font-size: 100%;" size="33" type="text" name="cmnd" onKeyDown="return doexec(event);"/><b>-&gt;</b></form>
+          <div class="footer" id="status_div" style="border-top: 2; font-size: 100%; background-color: #AD6666;"><b>JSONBOT PRESENT!<b></div>
+     </div>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+		<title>jQuery UI Example Page</title>
+		<link type="text/css" href="css/smoothness/jquery-ui-1.8.16.custom.css" rel="stylesheet" />	
+		<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+		<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+		<script type="text/javascript">
+			$(function(){
+
+				// Accordion
+				$("#accordion").accordion({ header: "h3" });
+	
+				// Tabs
+				$('#tabs').tabs();
+	
+
+				// Dialog			
+				$('#dialog').dialog({
+					autoOpen: false,
+					width: 600,
+					buttons: {
+						"Ok": function() { 
+							$(this).dialog("close"); 
+						}, 
+						"Cancel": function() { 
+							$(this).dialog("close"); 
+						} 
+					}
+				});
+				
+				// Dialog Link
+				$('#dialog_link').click(function(){
+					$('#dialog').dialog('open');
+					return false;
+				});
+
+				// Datepicker
+				$('#datepicker').datepicker({
+					inline: true
+				});
+				
+				// Slider
+				$('#slider').slider({
+					range: true,
+					values: [17, 67]
+				});
+				
+				// Progressbar
+				$("#progressbar").progressbar({
+					value: 20 
+				});
+				
+				//hover states on the static widgets
+				$('#dialog_link, ul#icons li').hover(
+					function() { $(this).addClass('ui-state-hover'); }, 
+					function() { $(this).removeClass('ui-state-hover'); }
+				);
+				
+			});
+		</script>
+		<style type="text/css">
+			/*demo page css*/
+			body{ font: 62.5% "Trebuchet MS", sans-serif; margin: 50px;}
+			.demoHeaders { margin-top: 2em; }
+			#dialog_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
+			#dialog_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
+			ul#icons {margin: 0; padding: 0;}
+			ul#icons li {margin: 2px; position: relative; padding: 4px 0; cursor: pointer; float: left;  list-style: none;}
+			ul#icons span.ui-icon {float: left; margin: 0 4px;}
+		</style>	
+	</head>
+	<body>
+	<h1>Welcome to jQuery UI!</h1>
+	<p style="font-size: 1.3em; line-height: 1.5; margin: 1em 0; width: 50%;">This page demonstrates the widgets you downloaded using the theme you selected in the download builder. We've included and linked to minified versions of <a href="js/jquery-1.6.2.min.js">jQuery</a>, your personalized copy of <a href="js/jquery-ui-1.8.16.custom.min.js">jQuery UI (js/jquery-ui-1.8.16.custom.min.js)</a>, and <a href="css/smoothness/jquery-ui-1.8.16.custom.css">css/smoothness/jquery-ui-1.8.16.custom.css</a> which imports the entire jQuery UI CSS Framework. You can choose to link a subset of the CSS Framework depending on your needs. </p>
+	<p style="font-size: 1.2em; line-height: 1.5; margin: 1em 0; width: 50%;">You've downloaded components and a theme that are compatible with jQuery 1.3+. Please make sure you are using jQuery 1.3+ in your production environment.</p>	
+
+	<p style="font-weight: bold; margin: 2em 0 1em; font-size: 1.3em;">YOUR COMPONENTS:</p>
+		
+		<!-- Accordion -->
+		<h2 class="demoHeaders">Accordion</h2>
+		<div id="accordion">
+			<div>
+				<h3><a href="#">First</a></h3>
+				<div>Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.</div>
+			</div>
+			<div>
+				<h3><a href="#">Second</a></h3>
+				<div>Phasellus mattis tincidunt nibh.</div>
+			</div>
+			<div>
+				<h3><a href="#">Third</a></h3>
+				<div>Nam dui erat, auctor a, dignissim quis.</div>
+			</div>
+		</div>
+	
+		<!-- Tabs -->
+		<h2 class="demoHeaders">Tabs</h2>
+		<div id="tabs">
+			<ul>
+				<li><a href="#tabs-1">First</a></li>
+				<li><a href="#tabs-2">Second</a></li>
+				<li><a href="#tabs-3">Third</a></li>
+			</ul>
+			<div id="tabs-1">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div>
+			<div id="tabs-2">Phasellus mattis tincidunt nibh. Cras orci urna, blandit id, pretium vel, aliquet ornare, felis. Maecenas scelerisque sem non nisl. Fusce sed lorem in enim dictum bibendum.</div>
+			<div id="tabs-3">Nam dui erat, auctor a, dignissim quis, sollicitudin eu, felis. Pellentesque nisi urna, interdum eget, sagittis et, consequat vestibulum, lacus. Mauris porttitor ullamcorper augue.</div>
+		</div>
+	
+		<!-- Dialog NOTE: Dialog is not generated by UI in this demo so it can be visually styled in themeroller-->
+		<h2 class="demoHeaders">Dialog</h2>
+		<p><a href="#" id="dialog_link" class="ui-state-default ui-corner-all"><span class="ui-icon ui-icon-newwin"></span>Open Dialog</a></p>
+		
+		
+		<h2 class="demoHeaders">Overlay and Shadow Classes <em>(not currently used in UI widgets)</em></h2>
+		<div style="position: relative; width: 96%; height: 200px; padding:1% 4%; overflow:hidden;" class="fakewindowcontain">
+			<p>Lorem ipsum dolor sit amet,  Nulla nec tortor. Donec id elit quis purus consectetur consequat. </p><p>Nam congue semper tellus. Sed erat dolor, dapibus sit amet, venenatis ornare, ultrices ut, nisi. Aliquam ante. Suspendisse scelerisque dui nec velit. Duis augue augue, gravida euismod, vulputate ac, facilisis id, sem. Morbi in orci. </p><p>Nulla purus lacus, pulvinar vel, malesuada ac, mattis nec, quam. Nam molestie scelerisque quam. Nullam feugiat cursus lacus.orem ipsum dolor sit amet, consectetur adipiscing elit. Donec libero risus, commodo vitae, pharetra mollis, posuere eu, pede. Nulla nec tortor. Donec id elit quis purus consectetur consequat. </p><p>Nam congue semper tellus. Sed erat dolor, dapibus sit amet, venenatis ornare, ultrices ut, nisi. Aliquam ante. Suspendisse scelerisque dui nec velit. Duis augue augue, gravida euismod, vulputate ac, facilisis id, sem. Morbi in orci. Nulla purus lacus, pulvinar vel, malesuada ac, mattis nec, quam. Nam molestie scelerisque quam. </p><p>Nullam feugiat cursus lacus.orem ipsum dolor sit amet, consectetur adipiscing elit. Donec libero risus, commodo vitae, pharetra mollis, posuere eu, pede. Nulla nec tortor. Donec id elit quis purus consectetur consequat. Nam congue semper tellus. Sed erat dolor, dapibus sit amet, venenatis ornare, ultrices ut, nisi. Aliquam ante. </p><p>Suspendisse scelerisque dui nec velit. Duis augue augue, gravida euismod, vulputate ac, facilisis id, sem. Morbi in orci. Nulla purus lacus, pulvinar vel, malesuada ac, mattis nec, quam. Nam molestie scelerisque quam. Nullam feugiat cursus lacus.orem ipsum dolor sit amet, consectetur adipiscing elit. Donec libero risus, commodo vitae, pharetra mollis, posuere eu, pede. Nulla nec tortor. Donec id elit quis purus consectetur consequat. Nam congue semper tellus. Sed erat dolor, dapibus sit amet, venenatis ornare, ultrices ut, nisi. </p>
+			
+			<!-- ui-dialog -->
+			<div class="ui-overlay"><div class="ui-widget-overlay"></div><div class="ui-widget-shadow ui-corner-all" style="width: 302px; height: 152px; position: absolute; left: 50px; top: 30px;"></div></div>
+			<div style="position: absolute; width: 280px; height: 130px;left: 50px; top: 30px; padding: 10px;" class="ui-widget ui-widget-content ui-corner-all">
+				<div class="ui-dialog-content ui-widget-content" style="background: none; border: 0;">
+					<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+				</div>
+			</div>
+		
+		</div>
+
+		
+		<!-- ui-dialog -->
+		<div id="dialog" title="Dialog Title">
+			<p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+		</div>
+			
+				
+				
+		<h2 class="demoHeaders">Framework Icons (content color preview)</h2>
+		<ul id="icons" class="ui-widget ui-helper-clearfix">
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-1-n"><span class="ui-icon ui-icon-carat-1-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-1-ne"><span class="ui-icon ui-icon-carat-1-ne"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-1-e"><span class="ui-icon ui-icon-carat-1-e"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-1-se"><span class="ui-icon ui-icon-carat-1-se"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-1-s"><span class="ui-icon ui-icon-carat-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-1-sw"><span class="ui-icon ui-icon-carat-1-sw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-1-w"><span class="ui-icon ui-icon-carat-1-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-1-nw"><span class="ui-icon ui-icon-carat-1-nw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-2-n-s"><span class="ui-icon ui-icon-carat-2-n-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-carat-2-e-w"><span class="ui-icon ui-icon-carat-2-e-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-1-n"><span class="ui-icon ui-icon-triangle-1-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-1-ne"><span class="ui-icon ui-icon-triangle-1-ne"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-1-e"><span class="ui-icon ui-icon-triangle-1-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-1-se"><span class="ui-icon ui-icon-triangle-1-se"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-1-s"><span class="ui-icon ui-icon-triangle-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-1-sw"><span class="ui-icon ui-icon-triangle-1-sw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-1-w"><span class="ui-icon ui-icon-triangle-1-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-1-nw"><span class="ui-icon ui-icon-triangle-1-nw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-2-n-s"><span class="ui-icon ui-icon-triangle-2-n-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-triangle-2-e-w"><span class="ui-icon ui-icon-triangle-2-e-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-1-n"><span class="ui-icon ui-icon-arrow-1-n"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-1-ne"><span class="ui-icon ui-icon-arrow-1-ne"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-1-e"><span class="ui-icon ui-icon-arrow-1-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-1-se"><span class="ui-icon ui-icon-arrow-1-se"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-1-s"><span class="ui-icon ui-icon-arrow-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-1-sw"><span class="ui-icon ui-icon-arrow-1-sw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-1-w"><span class="ui-icon ui-icon-arrow-1-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-1-nw"><span class="ui-icon ui-icon-arrow-1-nw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-2-n-s"><span class="ui-icon ui-icon-arrow-2-n-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-2-ne-sw"><span class="ui-icon ui-icon-arrow-2-ne-sw"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-2-e-w"><span class="ui-icon ui-icon-arrow-2-e-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-2-se-nw"><span class="ui-icon ui-icon-arrow-2-se-nw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowstop-1-n"><span class="ui-icon ui-icon-arrowstop-1-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowstop-1-e"><span class="ui-icon ui-icon-arrowstop-1-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowstop-1-s"><span class="ui-icon ui-icon-arrowstop-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowstop-1-w"><span class="ui-icon ui-icon-arrowstop-1-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-1-n"><span class="ui-icon ui-icon-arrowthick-1-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-1-ne"><span class="ui-icon ui-icon-arrowthick-1-ne"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-1-e"><span class="ui-icon ui-icon-arrowthick-1-e"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-1-se"><span class="ui-icon ui-icon-arrowthick-1-se"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-1-s"><span class="ui-icon ui-icon-arrowthick-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-1-sw"><span class="ui-icon ui-icon-arrowthick-1-sw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-1-w"><span class="ui-icon ui-icon-arrowthick-1-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-1-nw"><span class="ui-icon ui-icon-arrowthick-1-nw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-2-n-s"><span class="ui-icon ui-icon-arrowthick-2-n-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-2-ne-sw"><span class="ui-icon ui-icon-arrowthick-2-ne-sw"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-2-e-w"><span class="ui-icon ui-icon-arrowthick-2-e-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthick-2-se-nw"><span class="ui-icon ui-icon-arrowthick-2-se-nw"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthickstop-1-n"><span class="ui-icon ui-icon-arrowthickstop-1-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthickstop-1-e"><span class="ui-icon ui-icon-arrowthickstop-1-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthickstop-1-s"><span class="ui-icon ui-icon-arrowthickstop-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowthickstop-1-w"><span class="ui-icon ui-icon-arrowthickstop-1-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowreturnthick-1-w"><span class="ui-icon ui-icon-arrowreturnthick-1-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowreturnthick-1-n"><span class="ui-icon ui-icon-arrowreturnthick-1-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowreturnthick-1-e"><span class="ui-icon ui-icon-arrowreturnthick-1-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowreturnthick-1-s"><span class="ui-icon ui-icon-arrowreturnthick-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowreturn-1-w"><span class="ui-icon ui-icon-arrowreturn-1-w"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowreturn-1-n"><span class="ui-icon ui-icon-arrowreturn-1-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowreturn-1-e"><span class="ui-icon ui-icon-arrowreturn-1-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowreturn-1-s"><span class="ui-icon ui-icon-arrowreturn-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowrefresh-1-w"><span class="ui-icon ui-icon-arrowrefresh-1-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowrefresh-1-n"><span class="ui-icon ui-icon-arrowrefresh-1-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowrefresh-1-e"><span class="ui-icon ui-icon-arrowrefresh-1-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrowrefresh-1-s"><span class="ui-icon ui-icon-arrowrefresh-1-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-4"><span class="ui-icon ui-icon-arrow-4"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-arrow-4-diag"><span class="ui-icon ui-icon-arrow-4-diag"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-extlink"><span class="ui-icon ui-icon-extlink"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-newwin"><span class="ui-icon ui-icon-newwin"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-refresh"><span class="ui-icon ui-icon-refresh"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-shuffle"><span class="ui-icon ui-icon-shuffle"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-transfer-e-w"><span class="ui-icon ui-icon-transfer-e-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-transferthick-e-w"><span class="ui-icon ui-icon-transferthick-e-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-folder-collapsed"><span class="ui-icon ui-icon-folder-collapsed"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-folder-open"><span class="ui-icon ui-icon-folder-open"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-document"><span class="ui-icon ui-icon-document"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-document-b"><span class="ui-icon ui-icon-document-b"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-note"><span class="ui-icon ui-icon-note"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-mail-closed"><span class="ui-icon ui-icon-mail-closed"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-mail-open"><span class="ui-icon ui-icon-mail-open"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-suitcase"><span class="ui-icon ui-icon-suitcase"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-comment"><span class="ui-icon ui-icon-comment"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-person"><span class="ui-icon ui-icon-person"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-print"><span class="ui-icon ui-icon-print"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-trash"><span class="ui-icon ui-icon-trash"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-locked"><span class="ui-icon ui-icon-locked"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-unlocked"><span class="ui-icon ui-icon-unlocked"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-bookmark"><span class="ui-icon ui-icon-bookmark"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-tag"><span class="ui-icon ui-icon-tag"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-home"><span class="ui-icon ui-icon-home"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-flag"><span class="ui-icon ui-icon-flag"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-calculator"><span class="ui-icon ui-icon-calculator"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-cart"><span class="ui-icon ui-icon-cart"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-pencil"><span class="ui-icon ui-icon-pencil"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-clock"><span class="ui-icon ui-icon-clock"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-disk"><span class="ui-icon ui-icon-disk"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-calendar"><span class="ui-icon ui-icon-calendar"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-zoomin"><span class="ui-icon ui-icon-zoomin"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-zoomout"><span class="ui-icon ui-icon-zoomout"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-search"><span class="ui-icon ui-icon-search"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-wrench"><span class="ui-icon ui-icon-wrench"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-gear"><span class="ui-icon ui-icon-gear"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-heart"><span class="ui-icon ui-icon-heart"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-star"><span class="ui-icon ui-icon-star"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-link"><span class="ui-icon ui-icon-link"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-cancel"><span class="ui-icon ui-icon-cancel"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-plus"><span class="ui-icon ui-icon-plus"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-plusthick"><span class="ui-icon ui-icon-plusthick"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-minus"><span class="ui-icon ui-icon-minus"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-minusthick"><span class="ui-icon ui-icon-minusthick"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-close"><span class="ui-icon ui-icon-close"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-closethick"><span class="ui-icon ui-icon-closethick"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-key"><span class="ui-icon ui-icon-key"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-lightbulb"><span class="ui-icon ui-icon-lightbulb"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-scissors"><span class="ui-icon ui-icon-scissors"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-clipboard"><span class="ui-icon ui-icon-clipboard"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-copy"><span class="ui-icon ui-icon-copy"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-contact"><span class="ui-icon ui-icon-contact"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-image"><span class="ui-icon ui-icon-image"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-video"><span class="ui-icon ui-icon-video"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-script"><span class="ui-icon ui-icon-script"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-alert"><span class="ui-icon ui-icon-alert"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-info"><span class="ui-icon ui-icon-info"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-notice"><span class="ui-icon ui-icon-notice"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-help"><span class="ui-icon ui-icon-help"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-check"><span class="ui-icon ui-icon-check"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-bullet"><span class="ui-icon ui-icon-bullet"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-radio-off"><span class="ui-icon ui-icon-radio-off"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-radio-on"><span class="ui-icon ui-icon-radio-on"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-pin-w"><span class="ui-icon ui-icon-pin-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-pin-s"><span class="ui-icon ui-icon-pin-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-play"><span class="ui-icon ui-icon-play"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-pause"><span class="ui-icon ui-icon-pause"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-seek-next"><span class="ui-icon ui-icon-seek-next"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-seek-prev"><span class="ui-icon ui-icon-seek-prev"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-seek-end"><span class="ui-icon ui-icon-seek-end"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-seek-first"><span class="ui-icon ui-icon-seek-first"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-stop"><span class="ui-icon ui-icon-stop"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-eject"><span class="ui-icon ui-icon-eject"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-volume-off"><span class="ui-icon ui-icon-volume-off"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-volume-on"><span class="ui-icon ui-icon-volume-on"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-power"><span class="ui-icon ui-icon-power"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-signal-diag"><span class="ui-icon ui-icon-signal-diag"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-signal"><span class="ui-icon ui-icon-signal"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-battery-0"><span class="ui-icon ui-icon-battery-0"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-battery-1"><span class="ui-icon ui-icon-battery-1"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-battery-2"><span class="ui-icon ui-icon-battery-2"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-battery-3"><span class="ui-icon ui-icon-battery-3"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-plus"><span class="ui-icon ui-icon-circle-plus"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-minus"><span class="ui-icon ui-icon-circle-minus"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-close"><span class="ui-icon ui-icon-circle-close"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-triangle-e"><span class="ui-icon ui-icon-circle-triangle-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-triangle-s"><span class="ui-icon ui-icon-circle-triangle-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-triangle-w"><span class="ui-icon ui-icon-circle-triangle-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-triangle-n"><span class="ui-icon ui-icon-circle-triangle-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-arrow-e"><span class="ui-icon ui-icon-circle-arrow-e"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-arrow-s"><span class="ui-icon ui-icon-circle-arrow-s"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-arrow-w"><span class="ui-icon ui-icon-circle-arrow-w"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-arrow-n"><span class="ui-icon ui-icon-circle-arrow-n"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-zoomin"><span class="ui-icon ui-icon-circle-zoomin"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-zoomout"><span class="ui-icon ui-icon-circle-zoomout"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circle-check"><span class="ui-icon ui-icon-circle-check"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circlesmall-plus"><span class="ui-icon ui-icon-circlesmall-plus"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circlesmall-minus"><span class="ui-icon ui-icon-circlesmall-minus"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-circlesmall-close"><span class="ui-icon ui-icon-circlesmall-close"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-squaresmall-plus"><span class="ui-icon ui-icon-squaresmall-plus"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-squaresmall-minus"><span class="ui-icon ui-icon-squaresmall-minus"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-squaresmall-close"><span class="ui-icon ui-icon-squaresmall-close"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-grip-dotted-vertical"><span class="ui-icon ui-icon-grip-dotted-vertical"></span></li>
+		
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-grip-dotted-horizontal"><span class="ui-icon ui-icon-grip-dotted-horizontal"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-grip-solid-vertical"><span class="ui-icon ui-icon-grip-solid-vertical"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-grip-solid-horizontal"><span class="ui-icon ui-icon-grip-solid-horizontal"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-gripsmall-diagonal-se"><span class="ui-icon ui-icon-gripsmall-diagonal-se"></span></li>
+		<li class="ui-state-default ui-corner-all" title=".ui-icon-grip-diagonal-se"><span class="ui-icon ui-icon-grip-diagonal-se"></span></li>
+		</ul>
+
+	
+		<!-- Slider -->
+		<h2 class="demoHeaders">Slider</h2>
+		<div id="slider"></div>
+	
+		<!-- Datepicker -->
+		<h2 class="demoHeaders">Datepicker</h2>
+		<div id="datepicker"></div>
+	
+		<!-- Progressbar -->
+		<h2 class="demoHeaders">Progressbar</h2>	
+		<div id="progressbar"></div>
+			
+		<!-- Highlight / Error -->
+		<h2 class="demoHeaders">Highlight / Error</h2>
+		<div class="ui-widget">
+			<div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em;"> 
+				<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+				<strong>Hey!</strong> Sample ui-state-highlight style.</p>
+			</div>
+		</div>
+		<br/>
+		<div class="ui-widget">
+			<div class="ui-state-error ui-corner-all" style="padding: 0 .7em;"> 
+				<p><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span> 
+				<strong>Alert:</strong> Sample ui-state-error style.</p>
+			</div>
+		</div>
+
+	</body>
+</html>
+
+

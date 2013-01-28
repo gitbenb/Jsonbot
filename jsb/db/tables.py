@@ -1,0 +1,66 @@
+# jsb/db/tables.py
+#
+#
+
+""" database table definitions (gozerbot compat). """
+
+tablestxt =  """
+
+CREATE TABLE infoitems (
+    indx INTEGER PRIMARY KEY,
+    item VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    userhost VARCHAR(255) NOT NULL,
+    time INT(20) NOT NULL
+);
+
+CREATE TABLE karma (
+    item VARCHAR(255) NOT NULL,
+    value INT(20) NOT NULL,
+    PRIMARY KEY (item)
+);
+
+CREATE TABLE whykarma (
+    item VARCHAR(255) NOT NULL,
+    updown VARCHAR(10) NOT NULL,
+    why TEXT NOT NULL
+);
+
+CREATE TABLE whokarma (
+    item VARCHAR(255) NOT NULL,
+    nick VARCHAR(255) NOT NULL,
+    updown VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE quotes (
+  indx INTEGER PRIMARY KEY,
+  quote text NOT NULL,
+  userhost VARCHAR(255) NOT NULL,
+  createtime INT(20) NOT NULL,
+  nick VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE todo (
+  indx INTEGER PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  time INT(20) DEFAULT NULL,
+  duration INT(20) DEFAULT NULL,
+  warnsec INT(20) DEFAULT NULL,
+  descr TEXT NOT NULL,
+  priority INT(20) DEFAULT NULL
+);
+
+CREATE TABLE birthday (
+    name VARCHAR(255) NOT NULL,
+    birthday varchar(255) NOT NULL,
+    PRIMARY KEY (name)
+);
+
+CREATE TABLE list (
+    indx INTEGER PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    listname VARCHAR(255) NOT NULL,
+    item TEXT NOT NULL
+);
+
+"""
