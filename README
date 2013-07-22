@@ -23,8 +23,7 @@ the jsb pakage contains the following programs:
 
 note: JSONBOT is in BETA stage right now and still subject to change of protocols and API.
 
-see http://jsonbot.googlecode.com.
-see https://jsonbot.org for documentation on the bot. 
+see http://github.com/jsonbot/jsonbot
 
 license
 ~~~~~~~
@@ -36,23 +35,6 @@ contact the developer
 
     * email: bthate@gmail.com
     * jabber/xmpp: bthate@gmail.com
-    * IRC: botfather on #dunkbots irc.freenode.net
-    * twitter: http://twitter.com/jsonbot
-
-urls
-~~~~
-
-    * Source code: http://jsonbot.googlecode.com
-    * web: http://jsonbot.org:10102 (web)
-    * jabber: jsonbot@jsonbot.org
-
-running a development version of the bot
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-first checkout the main bot from the mercurial repository
-
-    hg clone http://jsonbot.googlecode.com/hg mybot
-
-now you can run the programs in the bin directory with the
-./bin/<program>  command. try ./bin/jsb for the console app
+    * IRC: dunk_ on #dunkbots irc.freenode.net
+    * twitter: http://twitter.com/lifefeedback
 
