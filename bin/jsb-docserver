@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+#
+#
+
+""" static file server to test docs with.  """
+
+import os, sys
+sys.path.insert(0, os.getcwd())
+
+from jsb.version import getversion
+from jsb.imports import gettornado
+
+print getversion('DOCSERVER')
+
+tornado = gettornado()
+
+import tornado.web
+import tornado.httpserver
+import tornado.ioloop
+
+settings = {
+    "static_url_prefix": '/',
+    "static_path": os.getcwd() + os.sep + 'docs' + os.sep + "html" + os.sep,
+}
+
+
+application = tornado.web.Application([(r"(/.*)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),], **settings)
+
+if __name__ == "__main__":
+    print settings
+    server = tornado.httpserver.HTTPServer(application)
+    server.listen(10104)
+    print "listening on port 10104"
+    tornado.ioloop.IOLoop.instance().start()
