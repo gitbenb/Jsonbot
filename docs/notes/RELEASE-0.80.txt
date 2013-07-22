@@ -1,0 +1,49 @@
+RELEASE 0.80
+============
+
+Welcome JSONBOT 0.80 !!
+
+Been too quiet on reporting on all that has changed in JSONBOT, so i'll revamp that here comparing with version 0.7.
+
+about 
+~~~~~
+
+JSONBOT is a chatbot that can take commands and react to events on the network it is connected to (IRC, XMPP, WEB
+mostely). Push functionality is also provided (think RSS feeds to your IRC channel or XMPP conference). It is possible to program your own plugins to create custom
+functionality. 
+
+source/docs
+~~~~~~~~~~~
+
+ see http://jsonbot.org and http://jsonbot.googlecode.com
+
+
+make backup first
+~~~~~~~~~~~~~~~~~
+
+I added the jsb-backup program, please run this before starting the 0.80 bot. It will make a backup of your datadir into ~/jsb-backups
+
+changes
+~~~~~~~
+
+* GAE is no longer part of the standard distribution, as that is aimed at shell users as of 0.80 - use the mercurial repo if you want to use the GAE part of the bot
+* web console is now supported on shell - use the jsb-tornado program to launch a tornado web server bot on port 10102 
+* jsb-xmpp now supports OpenFire - use --openfire option to enable this
+* todo now uses per user databases instead of per channel - use the -c option to the todo command to show the channel todo 
+* learn items are not global per default - use !learn-toglobal to copy local learn data to the global learndb
+* relay plugins has been rewritten to use bot.cfg.name as well - means that relays need to be created again 
+* jsb-udpstripped program has been added that can be used to send udp data to the bot without the need of making config files (copy and edit it)
+* add fulljids = 1 to your xmpp bot config (most of the times in ~/.jsb/config/fleet/default-sxmpp/config) to enable full JID discovery in xmpp conference rooms 
+  (non anonymous)
+
+and:
+
+* lots of new plugins .. see !list ;]
+* lots of bug fixes - thnx everybody for reporting them
+* still lots of things to fix at 
+
+03:35 < jsonbot> tracker is http://code.google.com/p/jsonbot/issues/list
+
+If you find any problems or have feature request please post that on the tracker url above.
+
+Or try @botfather on #dunkbots on irc.freenode.net ;]

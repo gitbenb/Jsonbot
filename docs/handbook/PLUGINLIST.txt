@@ -1,0 +1,313 @@
+PLUGINLIST
+==========
+
+
+
+1) jsb.lib.periodical -=- provide a periodic structure.
+
+2) jsb.plugs.common.8b -=- run the eight ball.
+
+3) jsb.plugs.common.alarm -=- the alarm plugin allows for alarms that message the user giving the
+    command at a certain time or number of seconds from now
+
+4) jsb.plugs.common.ask -=- ask a user a question and relay back the response.
+
+5) jsb.plugs.common.bugtracker -=- no docstring available
+
+6) jsb.plugs.common.colors -=- use the morph to add color to selected words.
+
+7) jsb.plugs.common.controlchar -=- command to control the control (command) characters. The cc is a string 
+    containing the allowed control characters.
+
+8) jsb.plugs.common.feedback -=- give feedback on the bot to bthate@gmail.com. needs a xmpp server, so use jsb-xmpp or jsb-fleet.
+
+9) jsb.plugs.common.forward -=- forward events occuring on a bot to another bot through xmpp.
+
+10) jsb.plugs.common.gcalc -=- use google to calculate e.g. !gcalc 1 + 1
+
+11) jsb.plugs.common.hubbub -=- the hubbub mantra is of the following:
+    use the hb-register <feedname> <url> command to register url and start a feed in in one pass.
+
+12) jsb.plugs.common.idle -=- show how long someone has been idle.
+
+13) jsb.plugs.common.imdb -=- query the imdb database.
+
+14) jsb.plugs.common.ipcalc -=- IP subnet calculator. this module allows you to perform network calculations.
+
+15) jsb.plugs.common.karma -=- maintain karma!
+
+16) jsb.plugs.common.koffie -=- schenk wat koffie!
+
+17) jsb.plugs.common.learn -=- learn information items .. facts .. factoids.
+
+18) jsb.plugs.common.overflow -=- Grabs data for a StackOverflow user. You must enable this plugin first by running .. ;overflow-cfg enable 1
+
+19) jsb.plugs.common.plus -=- plugin to query the Google+ API.
+
+20) jsb.plugs.common.quote -=- manage quotes.
+
+21) jsb.plugs.common.relay -=- relay to other users/channels.
+
+22) jsb.plugs.common.remind -=- remind people .. say txt when somebody gets active
+
+23) jsb.plugs.common.rss -=- the rss mantra is of the following:
+
+    1) add a url with !rss-add <feedname> <url>
+    2) use !rss-start <feed> in the channel you want the feed to appear
+    3) run !rss-scan <feed> to see what tokens you can use .. add them with !rss-additem <feed> <token>
+    4) change markup with !rss-addmarkup <feed> <markupitem> <value> .. see !rss-markuplist for possible markups
+    5) check with !rss-feeds in a channel to see what feeds are running in a channel
+    6) in case of trouble check !rss-running to see what feeds are monitored
+    7) enjoy
+
+24) jsb.plugs.common.search -=- access stats data from the spider plugin.
+
+25) jsb.plugs.common.seen -=- nick tracking.
+
+26) jsb.plugs.common.shop -=- maitain a shopping list (per user).
+
+27) jsb.plugs.common.snarf -=- fetch title of url.
+
+28) jsb.plugs.common.spider -=- Spider plugin.. Spider websites and makes an index into them.
+
+    taken from http://code.activestate.com/recipes/576551-simple-web-crawler/
+
+    -- BHJTW 15-11-2011 Adapted for JSONBOT
+
+29) jsb.plugs.common.tinyurl -=- tinyurl.com feeder
+
+30) jsb.plugs.common.todo -=- manage todo lists per users .. a time/data string can be provided to set 
+    time on a todo item.
+
+31) jsb.plugs.common.topic -=- manage topics.
+
+32) jsb.plugs.common.tour -=- do a tour of the bot.
+
+33) jsb.plugs.common.twitter -=- a twitter plugin for the JSONBOT, currently post only .. uses tweepy oauth.
+
+34) jsb.plugs.common.urban -=- query urbandictionary
+
+35) jsb.plugs.common.url -=- maintain log of urls.
+
+36) jsb.plugs.common.urlinfo -=- Catches URLs on channel and gives information about them like title, image size, etc.
+    Uses http://whatisthisfile.appspot.com/ via XMLRPC
+
+    Example:
+    19:20 <@raspi> http://www.youtube.com/watch?v=9RZ-hYPAMFQ
+    19:20 <@bot> Title: "YouTube - Black Knight Holy Grail"
+    19:28 <@raspi> test http://www.raspi.fi foobar http://raspi.fi/wp-includes/images/rss.png
+    19:28 <@bot> 1. Title: "raspi.fi" Redirect: http://raspi.fi/  2. Image: 14x14
+
+37) jsb.plugs.common.watcher -=- watch channels. channels events can be of remote origin.
+
+38) jsb.plugs.common.weather -=- show weather based on Google's weather API
+
+39) jsb.plugs.common.wikipedia -=- query wikipedia .. use countrycode to select a country specific wikipedia.
+
+40) jsb.plugs.common.yacy -=- no docstring available
+
+41) jsb.plugs.core.admin -=- admin related commands. these commands are mainly for maintaining the bot.
+
+42) jsb.plugs.core.alias -=- this alias plugin allows aliases for commands to be added. aliases are in
+    the form of <alias> -> <command> .. aliases to aliases are not allowed, 
+    aliases are per channel.
+
+43) jsb.plugs.core.all -=- output the outputcache to the user.
+
+44) jsb.plugs.core.botevent -=- provide handling of host/tasks/botevent tasks.
+
+45) jsb.plugs.core.cfg -=- this plugin manages various configuration settings.
+
+46) jsb.plugs.core.chan -=- channel related commands.
+
+47) jsb.plugs.core.choice -=- the choice command can be used with a string or in a pipeline.
+
+48) jsb.plugs.core.core -=- core bot commands.
+
+49) jsb.plugs.core.count -=- count number of items in result queue.
+
+50) jsb.plugs.core.data -=- data dumper commands.
+
+51) jsb.plugs.core.dispatch -=- this is the dispatch plugin that dispatches events to commands.
+
+52) jsb.plugs.core.echo -=- echo typed sentences.
+
+53) jsb.plugs.core.fleet -=- The fleet makes it possible to run multiple bots in one running instance.
+    It is a list of bots. This plugin provides commands to manipulate this list of bots.
+
+54) jsb.plugs.core.gatekeeper -=- gatekeeper commands.
+
+55) jsb.plugs.core.grep -=- grep the output of bot comamnds.
+
+56) jsb.plugs.core.ignore -=- no docstring available
+
+57) jsb.plugs.core.irc -=- irc related commands.
+
+58) jsb.plugs.core.misc -=- misc commands.
+
+59) jsb.plugs.core.more -=- access the output cache.
+
+60) jsb.plugs.core.nickcapture -=- nick recapture callback.
+
+61) jsb.plugs.core.nickserv -=- authenticate to NickServ.
+
+62) jsb.plugs.core.not -=- negative grep.
+
+63) jsb.plugs.core.outputcache -=- outputcache used when reply cannot directly be delivered.
+
+64) jsb.plugs.core.plug -=- plugin management.
+
+65) jsb.plugs.core.rc -=- jsonbot resource files .. files with the .jsb extension which consists of commands to be executed.
+
+66) jsb.plugs.core.remotecallbacks -=- dispatch remote events.
+
+67) jsb.plugs.core.reverse -=- reverse pipeline or reverse <txt>.
+
+68) jsb.plugs.core.size -=- call a size() function in every module in sys.modules
+
+69) jsb.plugs.core.sort -=- sort bot results.
+
+70) jsb.plugs.core.tail -=- tail bot results.
+
+71) jsb.plugs.core.test -=- test plugin.
+
+72) jsb.plugs.core.to -=- send output to another user .. used in a pipeline.
+
+73) jsb.plugs.core.underauth -=- handle non-ident connection on undernet.
+
+74) jsb.plugs.core.uniq -=- used in a pipeline .. unique elements.
+
+75) jsb.plugs.core.user -=- users related commands.
+
+76) jsb.plugs.core.userstate -=- userstate is stored in jsondata/state/users/<username>.
+
+77) jsb.plugs.core.welcome -=- send welcome message.
+
+78) jsb.plugs.core.xmpp -=- xmpp related commands.
+
+79) jsb.plugs.db.birthday -=- manage birthdays
+
+80) jsb.plugs.db.infoitem -=- information items .. keyword/description pairs
+
+81) jsb.plugs.db.karma2 -=- karma plugin
+
+82) jsb.plugs.db.lists -=- lists per user
+
+83) jsb.plugs.db.quote2 -=- quotes plugin
+
+84) jsb.plugs.db.todo2 -=- provide todo related commands
+
+85) jsb.plugs.socket.autovoice -=- do voice on join
+
+86) jsb.plugs.socket.chatlog -=- log channels to [hour:min] <nick> txt format, only logging to files is supported right now.
+
+87) jsb.plugs.socket.confluence -=- confluence.py - jsonbot module for performing lookups on a confluence server
+Copyright 2011, Richard Bateman
+
+Special thanks to Sean B. Palmer for his phenny module; many of the ideas for
+this were adapted from that plugin
+
+http://inamidst.com/phenny/
+
+88) jsb.plugs.socket.dns -=- do a fqdn loopup.
+
+89) jsb.plugs.socket.fisheye -=- fisheye plugin.
+
+90) jsb.plugs.socket.geo -=- This product includes GeoLite data created by MaxMind, available from http://maxmind.com/
+
+91) jsb.plugs.socket.github -=- no docstring available
+
+92) jsb.plugs.socket.irccat -=- irccat.py - jsonbot "irccat" Module
+Copyright 2011, Richard Bateman
+Licensed under the New BSD License.
+
+Written to be used in the #firebreath IRC channel: http://www.firebreath.org
+
+To test, set up the host and port, then use something like:
+
+echo "@taxilian I am awesome" | netcat -g0 localhost 54321
+
+echo "#channel I am awesome" | netcat -g0 localhost 54321
+
+you can specify multiple users (with @) and channels (with #) by seperating them
+with commas.  Not that with jabber, channels tend to be treated as users
+unless you set up an alias in your channel:
+
+!irccat_add_alias #channel
+
+93) jsb.plugs.socket.irccat2 -=- irccat.py - jsonbot "irccat" Module
+Copyright 2011, Richard Bateman
+Licensed under the New BSD License.
+
+Written to be used in the #firebreath IRC channel: http://www.firebreath.org
+
+To test, set up the host and port, then use something like:
+
+echo "@taxilian I am awesome" | netcat -g0 localhost 54321
+
+echo "#channel I am awesome" | netcat -g0 localhost 54321
+
+you can specify multiple users (with @) and channels (with #) by seperating them
+with commas.  Not that with jabber, channels tend to be treated as users
+unless you set up an alias in your channel:
+
+!irccat_add_alias #channel
+
+BHJTW - 28-02-2012 .. move to irccat2.py to use the normal irccat-cfg functions
+
+94) jsb.plugs.socket.jira -=- jira.py - jsonbot module for performing lookups on a jira server
+Copyright 2011, Richard Bateman
+
+Special thanks to Sean B. Palmer for his phenny module; many of the ideas for
+this were adapted from that plugin
+
+http://inamidst.com/phenny/
+
+95) jsb.plugs.socket.kickban -=- kickban functionality for IRC.
+
+96) jsb.plugs.socket.lmgt -=- no docstring available
+
+97) jsb.plugs.socket.markov -=- Markov Talk for Gozerbot
+
+The Chain:
+    (predictate) -> [list of possible words]
+
+TODO:
+    - Propabilities
+    - Start searching for full sentence, not just the first ORDER_K words 
+      of a sentence
+
+BHJTW:
+    - adapted for JSONBOT
+
+98) jsb.plugs.socket.mpd -=- music player daemon control.
+
+99) jsb.plugs.socket.ops -=- for op to work for a user the user must have the channel name in his/hers
+    status .. use !user-addstatus <username> #channel
+    normally the bot doesnt op nicks that join after a split to prevent floods, 
+    this can be disabled by using ops-cfg oponsplit 1
+
+100) jsb.plugs.socket.restserver -=- implements a REST server, soon to be adapted for use with the jsb-tornado program.
+
+101) jsb.plugs.socket.udp -=- the bot has the capability to listen for udp packets which it will use
+    to /msg a given nick or channel.
+
+    1) setup
+
+        * run !udp-cfg udp 1 .. this enables the udp plugin
+        * do !reload udp to enable the udp plugin
+        * test with:
+
+        ::
+
+            echo "YOOO" | ./bin/jsb-udp -p <nick> 
+
+        * you can run !udp-cfgsave and edit ~/.jsb/config/jsb.plugs.socket.udp/config if need be.
+
+    2) limiter
+
+        on IRC the bot's /msg to a user/channel are limited to 1 per 3 seconds so the
+        bot will not excessflood on the server. you can use partyudp if you need no 
+        delay between sent messages, this will use dcc chat to deliver the message.
+        on jabber bots there is no delay
+

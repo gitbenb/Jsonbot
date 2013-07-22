@@ -1,0 +1,44 @@
+plugin documentation
+====================
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+core plugins
+------------
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    core/*
+
+common plugins
+--------------
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    common/*
+
+db plugins
+----------
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    db/*
+
+
+socket plugins
+--------------
+
+.. toctree::
+    :maxdepth: 1
+    :glob:
+
+    socket/*
+

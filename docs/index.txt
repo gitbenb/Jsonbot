@@ -1,0 +1,141 @@
+Welcome to JSONBOT
+==================
+
+::
+
+    23:26 <@botfather> hello jsonbot
+    23:26 <@jsonbot> World, greetings to all joined channels. """. World,greetings to all ppl on partyline, except the sender. '''. World, greetings to all queues. """. World, greetings to all channels and subscribers. """
+
+
+JSONBOT is a remote event-driven framework for building bots that talk JSON to each other over XMPP. 
+
+This distribution provides bots built on this framework for console, IRC, XMPP, Convore and WWW for the shell.
+
+the jsb pakage contains the following programs:
+
+    * jsb - console version of jsb
+    * jsb-convore - Convore version of jsb 
+    * jsb-makecert - create keys and certifictes for web console SSL
+    * jsb-init - create data directory and config examples, default ~/.jsb
+    * jsb-irc - IRC version of jsb
+    * jsb-fleet - mix IRC and XMPP bots
+    * jsb-sed - sed a whole directory
+    * jsb-stop - stop a running bot
+    * jsb-tornado - a shell web server based on tornado
+    * jsb-udp - send udp packets to the bot that will relay the data
+    * jsb-udpdirect - a stand alone udp program, copy & edit
+    * jsb-xmpp - XMPP version of jsb .. now with OpenFire support !
+
+note: JSONBOT is in BETA stage right now and still subject to change of protocols and API.
+
+see http://jsonbot.googlecode.com.
+
+if you want the GAE part of the bot, install from mercurial repo
+
+* "hg clone http://jsonbot.googlecode.com/hg mybot"
+
+see :ref:`handbook-introduction` for a quick introduction on the bot. 
+
+license
+~~~~~~~
+
+JSONBOT is free code (MIT) and can be cloned where needed. 
+
+contact the developer
+~~~~~~~~~~~~~~~~~~~~~
+
+    * email: bthate@gmail.com
+    * jabber/xmpp: bthate@gmail.com
+    * IRC: botfather on #dunkbots irc.freenode.net
+    * twitter: http://twitter.com/jsonbot
+
+handbook
+~~~~~~~~
+
+    .. toctree::
+        :maxdepth: 2
+        
+        handbook/index
+
+urls
+~~~~
+
+    * Source code: http://jsonbot.googlecode.com
+    * web: http://jsonbot.org:10102 (web)
+    * jabber: jsonbot@jsonbot.org
+
+notes
+~~~~~
+
+    .. toctree::
+        :maxdepth: 2
+
+        notes/index
+
+plugins
+~~~~~~~
+
+    .. toctree::        
+        :maxdepth: 3
+        :glob:
+
+        plugins/index
+
+
+running a development version of the bot
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+first checkout the main bot from the mercurial repository
+
+    ``hg clone http://jsonbot.googlecode.com/hg mybot``
+
+now you can run the programs in the bin directory with the
+``./bin/<program>``  command. try ./bin/jsb for the console app
+
+jsb code
+~~~~~~~~
+
+    .. toctree::
+        :maxdepth: 2
+
+        jsb/index
+        jsb/drivers/index
+        jsb/lib/index
+        jsb/lib/rest/index
+        jsb/utils/index
+
+jsb.plugs.core code
+~~~~~~~~~~~~~~~~~~~
+
+    .. toctree::
+        :maxdepth: 2
+
+        /jsb/plugs/core/index
+
+jsb.plugs.common code
+~~~~~~~~~~~~~~~~~~~~~
+
+    .. toctree::
+        :maxdepth: 2
+
+        /jsb/plugs/common/index
+
+jsb.plugs.socket code
+~~~~~~~~~~~~~~~~~~~~~
+
+
+    .. toctree::
+        :maxdepth: 2
+
+        /jsb/plugs/socket/index
+        
+
+jsb.plugs.myplugs code
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+    .. toctree::
+        :maxdepth: 2
+
+        /jsb/plugs/myplugs/index
+        

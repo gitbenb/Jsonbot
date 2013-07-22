@@ -1,0 +1,28 @@
+JSONBOT 0.84 RELEASE NOTES
+==========================
+
+please run ./bin/jsb-backup command to backup your current data directory.
+
+
+1) experimental features:
+
+    * FiSH support on IRC, thanks to Frank Spijkerman
+    * sleekxmpp driver for xmpp bots, use ./bin/jsb-sleek
+
+2) further changes
+
+    * new boot code - bot now tries to detect changes in the code and
+      recreates the dispatch tables when needed.
+    * reconnect code should work better, disconnect should now be properly
+      detected
+    * updated tornado to version 2.2 - needed for websockets new style 
+    * database support for sqlite and mysql is now available, see
+      ~/.jsb/config/mainconfig to enable it.
+    * default control character is now ;
+
+3) still todo
+
+    * there are problems with setting the control character properly
+    * yes .. docs still need to be written
+    * yes .. bugtracker needs attention
+
