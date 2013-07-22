@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+#
+#
+
+
+import sys
+import os
+
+sys.path.insert(0, os.getcwd())
+
+from jsb.lib.plugins import plugs
+from jsb.lib.boot import boot
+
+boot()
+plugs.loadall(force=True)
+plugsdict = plugs.all()
+plugslist = plugs.keys()
+plugslist.sort()
+
+t = "PLUGINLIST"
+print t
+print "=" * len(t)
+print "\n\n"
+
+nr = 1
+for p in plugslist:
+    if "myplugs" in p: continue
+    got = False
+    try:
+         res = plugsdict[p].__doc__.strip()
+         dot = ""
+         print "%s) %s -=- %s%s\n" % (nr, p, dot, res)
+         got = True
+    except AttributeError: pass
+    if not got: print "%s) %s -=- no docstring available\n" % (nr, p)
+    nr += 1
