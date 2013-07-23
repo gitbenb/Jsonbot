@@ -121,7 +121,7 @@ class BotEventRunner(Runner):
             stats.upitem(self.name)
             time.sleep(0.005)
             logstr = "finished %s - %s - %s (%s)" % (self.nowrunning, result or "no result", ievent.cbtype, self.elapsed)
-            if ievent.cbtype not in ['TICK', 'PING', 'NOTICE', 'TICK60']: logging.warn(logstr)
+            if ievent.cbtype not in ['TICK', 'PING', 'NOTICE', 'TICK60']: logging.info(logstr)
         except Exception, ex:
             handle_exception()
             result = str(ex)
