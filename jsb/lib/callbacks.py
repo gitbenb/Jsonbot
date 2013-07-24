@@ -163,7 +163,7 @@ class Callbacks(object):
             event.iscallback = True
             if not event.nolog: logging.debug("%s - %s - trail - %s" % (bot.cfg.name, getname(cb.func), callstack(sys._getframe())[::-1]))
             time.sleep(0.01)
-            if cb.threaded: logging.warn("PURE THREAD STARTED %s" % str(cb.func)) ; start_new_thread(cb.func, (bot, event))
+            if cb.threaded: logging.info("PURE THREAD STARTED %s" % str(cb.func)) ; start_new_thread(cb.func, (bot, event))
             else:
                 display = "%s/%s/%s" % (cb.plugname, bot.cfg.name, event.nick or event.channel)
                 if event.cbtype == "API":
@@ -216,7 +216,7 @@ class Callbacks(object):
 ## global callbacks
 
 first_callbacks = Callbacks() 
-callbacks = Callbacks()
+cb = callbacks = Callbacks()
 last_callbacks = Callbacks()
 remote_callbacks = Callbacks()
 api_callbacks = Callbacks()

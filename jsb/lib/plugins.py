@@ -110,7 +110,7 @@ class Plugins(LazyDict):
  
     def unload(self, modname):
         """ unload plugin .. remove related commands from cmnds object. """
-        logging.warn("unloading %s" % modname)
+        logging.info("unloading %s" % modname)
         try:
             self[modname].shutdown()
             logging.debug('called %s shutdown' % modname)

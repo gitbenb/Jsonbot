@@ -39,6 +39,7 @@ from jsb.utils.url import decode_html_entities
 from jsb.lib.users import getusers
 from jsb.imports import gettornado
 from jsb.lib.sink import mainsink
+from jsb.lib.O import cb, Event, Oboot
 
 tornado = gettornado()
 import tornado.ioloop
@@ -399,6 +400,7 @@ class BotBase(LazyDict):
         #mainsink.put(5, self, event)
         self.lastiter = time.time()
         self.benice()
+        cb.put(Event(**event))
         return event
 
     def ownercheck(self, userhost):

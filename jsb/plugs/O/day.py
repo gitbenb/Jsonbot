@@ -4,8 +4,7 @@
 
 """ show the day. """
 
-from botlib import cmnds
-from botlib.utils import error
+from jsb.lib.O import cmnds
 
 def day(event):
     if event.args: day = event.args[0]

@@ -94,6 +94,8 @@ class Commands(LazyDict):
         except IndexError: pass
         return self
 
+    register = add
+
     def checkre(self, bot, event):
         gotcc = event.gotcc()
         for r in self.regex:

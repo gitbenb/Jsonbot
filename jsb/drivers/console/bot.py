@@ -15,10 +15,12 @@ from jsb.utils.generic import strippedtxt, waitevents
 from jsb.utils.url import striphtml
 from jsb.utils.exception import handle_exception
 from jsb.lib.eventhandler import mainhandler
+from jsb.lib.O import datefmt, YELLOW, RED, BOLD, ENDC
 from event import ConsoleEvent
 
 ## basic imports
 
+import datetime
 import time
 import Queue
 import logging
@@ -79,7 +81,7 @@ class ConsoleBot(BotBase):
         self.start(False)
         while not self.stopped: 
             try: 
-                input = console.raw_input("\n> ")
+                input = console.raw_input("%s -=- %s%s< %s" % (time.strftime(datefmt), BOLD, YELLOW, ENDC))
                 if self.stopped: return
                 event = ConsoleEvent()
                 event.parse(self, input, console)
@@ -90,6 +92,7 @@ class ConsoleBot(BotBase):
                 if res:
                     for r in res:
                         txt = self.makeresponse(r, dot="<br>")
+                        txt = self.normalize(txt)
                         self.out(e.userhost, txt, plugorigin=e.plugorigin)
                 mainhandler.handle_one()
             except IOError: break
@@ -97,18 +100,9 @@ class ConsoleBot(BotBase):
             except (KeyboardInterrupt, EOFError): break
             except Exception, ex: handle_exception()
         console.save_history()
-        
-    def outnocb(self, printto, txt, *args, **kwargs):
-        if not self.cfg.uuid in printto: logging.error("%s is not the owner of this shell . not printing." % printto) ; return
-        txt = self.normalize(txt)
-        self._raw(txt)
 
-    def _raw(self, txt):
-        """ do raw output to the console. """
-        logging.info(u"%s - out - %s" % (self.cfg.name, txt))             
-        sys.stdout.write(txt)
-        sys.stdout.write('\n')
-        sys.stdout.flush()
+    def outnocb(self, printto, txt, *args, **kwargs):
+        self._raw("%s -=- %s%s>%s %s" % (time.strftime(datefmt), BOLD, RED, ENDC, txt))
 
     def action(self, channel, txt, event=None):
         txt = self.normalize(txt)

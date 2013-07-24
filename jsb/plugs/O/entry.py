@@ -6,8 +6,7 @@
 
 # botlib imports
 
-from botlib import O, cmnds, cb
-from botlib.utils import strtotime, strtorepeat
+from jsb.lib.O import O, cb, strtotime, strtorepeat
 
 ## Entry class
 
@@ -34,7 +33,6 @@ def do_entry(event):
 
 do_entry.pre = pre_entry
 
-cb.register("LINE", do_entry)
 cb.register("CONSOLE", do_entry)
 cb.register("MESSAGE", do_entry)
 cb.register("PRIVMSG", do_entry)

@@ -4,7 +4,7 @@
 
 """
 
-    -=-
+    -=- O.py
 
 """
 
@@ -15,18 +15,19 @@
 import collections
 import traceback
 import threading
+import datetime
 import getpass
 import logging
 import hashlib
 import optparse
-import _thread
+import thread
 import random
 import socket
 import string
 import fcntl
 import types
 import errno
-import queue
+import Queue
 import uuid
 import json
 import time
@@ -35,16 +36,28 @@ import sys
 import os
 import re
 
-## botlib imports
-
-from botlib import colors
-from .utils import *
-
 ## ======= 
 ## defines 
 ## ======= 
 
 basic_types= [ str, int, float, bool, None]
+
+__version__ = 0.2
+
+""" shining bright. """
+
+## ============
+## SHELL COLORS
+## ============
+
+ERASE_LINE = '\033[2K'
+BOLD='\033[1m'     
+RED = '\033[91m'   
+YELLOW = '\033[93m'
+GREEN = '\033[92m' 
+BLUE = '\033[94m'
+BLA = '\033[95m'
+ENDC = '\033[0m'
 
 ## =========
 ## VARIABLES
@@ -147,7 +160,7 @@ class O(dict):
             if name == "time": self["time"] = get_hms(self.ctime)
             if name == "stamp": self["stamp"] = get_stamp(self.ctime)
             if name == "_target":
-                from botlib.console import ConsoleBot
+                from jsb.drivers.console.bot import ConsoleBot
                 return ConsoleBot()
             if name == "result": self["result"] = O()
         try: return self[name]
@@ -255,10 +268,10 @@ class O(dict):
         return sep.join(self.show())
 
     def register(self, *args, **kwargs):
-         name = args[0]
-         obj = args[1]
-         logging.warn("register %s.%s" % (name, get_name(obj)))
-         self[name] = obj
+        name = args[0]
+        obj = args[1]
+        logging.warn("register %s.%s" % (name, get_name(obj)))
+        self[name] = obj
 
     def names(self, want=""):
         for key in self.keys():
@@ -416,7 +429,7 @@ class TaskRunner(threading.Thread):
     def __init__(self, *args, **kwargs):
         threading.Thread.__init__(self, None, self._loop, "thread.%s" % str(time.time()), args, kwargs)
         self.setDaemon(True)
-        self._queue = queue.Queue()
+        self._queue = Queue.Queue()
         self._state = "idle"
 
     def _loop(self):
@@ -556,8 +569,9 @@ class Plugins(O):
     def get_names(self, plugsdir): return [x[:-3] for x in os.listdir(plugsdir) if x.endswith(".py")] 
 
     def load_plugs(self):
-        path, fn = os.path.split(os.path.abspath(__file__))
-        plugsdir = j(path, "plugs")
+        p, fn = os.path.split(os.path.abspath(__file__))
+        path, fn = os.path.split(os.path.abspath(p))
+        plugsdir = j(path, "plugs", "O")
         logging.info("loading plugins from %s" % plugsdir)
         for plugname in self.get_names(plugsdir):
             if "__" in plugname: continue
@@ -602,7 +616,7 @@ class Fleet(O):
                 event.txt += "%s " % arg
         if not self.bots: self.bots = []
         for bot in self.get_typednames(Bot):
-            try: _thread.start_new_thread(bot.run, ())
+            try: thread.start_new_thread(bot.run, ())
             except: error()
             self.bots.append(bot)
             if event.txt: bot.put(event)
@@ -677,7 +691,7 @@ def get_classes(mod):
 
 ## make_version function
 
-def make_version(): return "%sBOTJE v%s   -=- %s%s" % (colors.RED, __version__, time.ctime(time.time()), colors.ENDC)
+def make_version(): return "%sBOTJE v%s   -=- %s%s" % (RED, __version__, time.ctime(time.time()), ENDC)
 
 ## hello function
 
@@ -689,7 +703,7 @@ def hello(): print(make_version() + "\n")
 
 ## boot function
 
-def boot():
+def Oboot():
     global config
     try: config.opts, config.args = make_opts()
     except SystemExit: os._exit(1)
@@ -701,7 +715,6 @@ def boot():
     if not config.workdir: config.workdir = "odata"
     make_dir(config.workdir)
     if not config.loglevel: config.loglevel = "error"
-    from .log import log_config
     log_config(config.loglevel)
     if config.loglevel:
         logging.warn("C O N F I G")
@@ -744,29 +757,6 @@ def set_core():
     core.register("fleet", fleet)
     core.register("config", config)
     core.register("plugins", plugins)
-
-## NO THNX !!
-#
-#
-
-""" and stuff. """
-
-## =======
-## IMPORTS
-## =======
-
-## basic imports
-
-import traceback
-import datetime
-import optparse
-import hashlib
-import logging
-import string
-import time
-import sys
-import os
-import re
 
 ## =========
 ## CONSTANTS
@@ -814,7 +804,7 @@ options = [
 ## SIGNATURE FUNCTION
 ## ==================
 
-def make_signature(data): return str(hashlib.sha1(bytes(str(data), "utf-8")).hexdigest())
+def make_signature(data): return str(hashlib.sha1(bytes(str(data))).hexdigest())
 
 ## ===============
 ## ERROR FUNCTIONS
@@ -1221,3 +1211,73 @@ headertxt = '''# %s
 # botlib can edit this file !!
 
 '''
+
+## runtime logging variables
+
+logfilter = ["looponce", "PING", "PONG"]
+logplugs = []
+
+## defines
+
+datefmt = BOLD + BLUE + '%H:%M:%S' + ENDC
+format = "%(asctime)-8s -=- %(message)-84s -=- (%(module)s.%(lineno)s)" 
+format_small = "%(asctime)-8s -=- %(message)-84s"
+
+LEVELS = {'debug': logging.DEBUG,
+          'info': logging.INFO,
+          'warning': logging.WARNING,
+          'warn': logging.WARNING,
+          'error': logging.ERROR,
+          'critical': logging.CRITICAL
+        }
+
+## Formatter class
+
+class Formatter(logging.Formatter):
+
+    """ hooks into the logging system. """
+
+    def format(self, record):
+        target = str(record.msg)
+        if not target: target = " "
+        if target[0] in [">", ]: target = "%s%s%s%s" % (RED, target[0], ENDC, target[1:])
+        elif target[0] in ["<", ]: target = "%s%s%s%s" % (GREEN, target[0], ENDC, target[1:])
+        else: target = "%s%s%s %s" % (GREEN, "!", ENDC, target)
+        record.msg = "%s" % target
+        return logging.Formatter.format(self, record)
+
+## MyFilter class
+
+class Filter(logging.Filter):
+
+    def filter(self, record):
+        for f in logfilter:
+            if f in record.msg: return False
+        for modname in logplugs:
+            if modname in record.module: record.levelno = logging.WARN ; return True
+        return True
+
+## provide a factory function returning a logger ready for use
+
+def log_config(loglevel):
+    """ return a properly configured logger. """
+    logger = logging.getLogger("")
+    formatter = Formatter(format, datefmt=datefmt)
+    formatter_short = Formatter(format_small, datefmt=datefmt)
+    level = LEVELS.get(str(loglevel).lower(), logging.NOTSET)
+    filehandler = None
+    logger.setLevel(level)
+    if logger.handlers:
+        for handler in logger.handlers: logger.removeHandler(handler)
+    try: filehandler = logging.handlers.TimedRotatingFileHandler(j(homedir, "ologs", "botlib.log"), 'midnight')
+    except: pass
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+    if level < logging.WARNING: ch.setFormatter(formatter)
+    else: ch.setFormatter(formatter_short)
+    ch.addFilter(Filter())
+    logger.addHandler(ch)
+    if filehandler:
+        filehandler.setLevel(level)
+        logger.addHandler(filehandler)
+    return logger

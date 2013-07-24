@@ -14,11 +14,9 @@ import os, sys
 sys.path.insert(0, os.getcwd())
 sys.path.insert(0, os.getcwd() + os.sep + "..")
 
-
 ## etc
 
 from jsb.version import getversion
-
 from jsb.utils.log import setloglevel
 
 ## command line parsing
@@ -50,12 +48,19 @@ if opts.datadir:
 
 ## make config from cmndline options
 
-from jsb.utils.log import setloglevel
-setloglevel(opts.loglevel or "error", not opts.nocolors)
+#from jsb.utils.log import setloglevel
+#setloglevel(opts.loglevel or "error", not opts.nocolors)
 
 if opts.nourl:
     from jsb.utils.url import url_disable
     url_disable()
+
+## Obooting
+
+from jsb.lib.O import Oboot
+Oboot()
+
+## bitter boot
 
 from jsb.lib.boot import boot
 if opts.fast: boot(opts.datadir, fast=True)
@@ -110,7 +115,7 @@ if opts.args:
     except: pass
     os._exit(0)
 
-print "datadir is %s" % getdatadir()
+logging.warn("datadir is %s" % getdatadir())
 bot.start(False)
 if bot.maincfg.dbenable: print "dbtype is %s" % bot.maincfg.dbtype
 fleet = getfleet()

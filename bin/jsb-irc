@@ -26,7 +26,6 @@ if opts.datadir: setdatadir(opts.datadir)
 from jsb.version import getversion
 print getversion('IRC')
 
-
 ## jsb imports
 
 from jsb.utils.exception import handle_exception
@@ -39,6 +38,8 @@ from jsb.lib.fleet import getfleet
 from jsb.utils.mainloop import mainloop
 from jsb.lib.threads import start_new_thread
 from jsb.lib.eventhandler import mainhandler
+from jsb.lib.O import Oboot
+
 import jsb.lib.users as users
 
 ## basic imports
@@ -53,6 +54,7 @@ setloglevel(opts.loglevel or "warning", not opts.nocolors, opts.datadir)
 
 ## boot
 
+Oboot()
 boot(opts.datadir)
 
 ## runtime

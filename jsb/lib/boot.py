@@ -16,6 +16,8 @@ from jsb.lib.jsbimport import _import
 from jsb.utils.lazydict import LazyDict
 from jsb.memcached import startmcdaemon
 from jsb.lib.runner import threadrunner
+from jsb.lib.O import set_core, Oboot
+
 
 ## basic imports
 
@@ -71,13 +73,13 @@ def scandir(d, dbenable=False):
 
 def boot(ddir=None, force=False, encoding="utf-8", umask=None, saveperms=True, fast=False, clear=False, loadall=False):
     """ initialize the bot. """
+    print("")
     global plugin_packages
     try:
         if os.getuid() == 0:
             print "don't run the bot as root"
             os._exit(1)
     except AttributeError: pass
-    logging.warn("starting!")
     from jsb.lib.datadir import getdatadir, setdatadir
     if ddir: setdatadir(ddir)
     origdir = ddir 
@@ -183,7 +185,6 @@ def boot(ddir=None, force=False, encoding="utf-8", umask=None, saveperms=True, f
         savepluginlist()
         savecallbacktable()
         savealiases()
-    logging.warn("ready")
 
 ## filestamps stuff
 
