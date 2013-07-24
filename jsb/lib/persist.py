@@ -232,7 +232,7 @@ class Persist(object):
             set(fn, self.data)
             if got: mc.set(fn, jsontxt)
             if 'sleeptime' in self.fn: logging.info('%s saved' % self.logname)
-            else: logging.warn('%s saved' % self.logname)
+            else: logging.info('%s saved' % self.logname)
         except IOError, ex: logging.error("not saving %s: %s" % (self.fn, str(ex))) ; raise
         except: raise
         finally: pass

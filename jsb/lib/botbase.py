@@ -459,7 +459,7 @@ class BotBase(LazyDict):
     def say(self, channel, txt, result=[], how="normal", event=None, nr=375, extend=0, dot=", ", showall=False, speed=None, direct=False, plugorigin=None, *args, **kwargs):
         """ default method to send txt from the bot to a user/channel/jid/conference etc. """
         speed = speed or (event and event.speed) or 5
-        logging.warn("saying to %s (speed is %s)" % (channel, speed))
+        logging.info("saying to %s (speed is %s)" % (channel, speed))
         if event:
             if event.userhost.lower() in self.state['ignore']: logging.warn("%s - ignore on %s - no output done" % (self.cfg.name, event.userhost)) ; return
             if event.how == "msg" and self.type == "irc": target = event.nick

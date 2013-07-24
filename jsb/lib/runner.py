@@ -82,7 +82,7 @@ class Runner(RunnerLoop):
             stats.upitem(self.nowrunning)
             stats.upitem(self.name)
             logstr = "finished %s - %s (%s)" % (self.nowrunning, result or "no result", self.elapsed)
-            logging.warn(logstr)
+            logging.info(logstr)
             time.sleep(0.005)
         except Exception, ex: handle_exception() ; result = str(ex)
         self.working = False
