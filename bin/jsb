@@ -4,9 +4,8 @@
 
 """ Console Bot. """
 
-
-#import warnings
-#warnings.simplefilter("ignore")
+import warnings
+warnings.simplefilter("ignore")
 
 ## bootstrap
 
@@ -38,18 +37,15 @@ opts, args = parser.parse_args()
 opts.args = args
 
 if not opts.args: print getversion('CONSOLE')
+
 if opts.lazy:
     from jsb.contrib import lazyimport
     lazyimport.install()
+
 if opts.datadir:
     if not os.path.isdir(opts.datadir): os.mkdir(opts.datadir)
     from jsb.lib.datadir import setdatadir
     setdatadir(opts.datadir)
-
-## make config from cmndline options
-
-#from jsb.utils.log import setloglevel
-#setloglevel(opts.loglevel or "error", not opts.nocolors)
 
 if opts.nourl:
     from jsb.utils.url import url_disable
@@ -86,6 +82,7 @@ import time
 import logging
 
 ## start the bot
+
 name = opts.name or "default-console"
 cfg = Config("fleet" + os.sep + name + os.sep + 'config')
 if not cfg.owner: cfg.owner = []
@@ -115,15 +112,12 @@ if opts.args:
     except: pass
     os._exit(0)
 
-logging.warn("datadir is %s" % getdatadir())
-bot.start(False)
-if bot.maincfg.dbenable: print "dbtype is %s" % bot.maincfg.dbtype
 fleet = getfleet()
 fleet.addbot(bot)
+fleet.boot()
 
 if opts.fleet:
     bots = fleet.loadall()
-    logging.error("starting fleet %s" % fleet.list())
     start_new_thread(fleet.startall, ())
 
 bot.startshell()

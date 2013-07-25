@@ -1,4 +1,4 @@
-# jsb/boot.py
+# jsb/lib/boot.py
 #
 #
 
@@ -18,7 +18,6 @@ from jsb.memcached import startmcdaemon
 from jsb.lib.runner import threadrunner
 from jsb.lib.O import set_core, Oboot
 
-
 ## basic imports
 
 import logging
@@ -34,11 +33,9 @@ sys.path.insert(0, os.getcwd() + os.sep + '..')
 
 ## defines
 
-plugin_packages = ['jsb.plugs.core', 'jsb.plugs.common', 'jsb.plugs.socket', 'myplugs', 'myplugs.socket', 'myplugs.common']
+plugin_packages = ['jsb.plugs.O', 'jsb.plugs.core', 'jsb.plugs.common', 'jsb.plugs.socket', 'myplugs', 'myplugs.socket', 'myplugs.common']
 default_plugins = ['jsb.plugs.core.admin', 'jsb.plugs.core.dispatch', 'jsb.plugs.core.plug', 'jsb.lib.periodical']
 default_deny = ["jsb.plugs.socket.fish", ]
-
-logging.info("default plugins are %s" % str(default_plugins))
 
 loaded = False
 cmndtable = None 
@@ -73,7 +70,6 @@ def scandir(d, dbenable=False):
 
 def boot(ddir=None, force=False, encoding="utf-8", umask=None, saveperms=True, fast=False, clear=False, loadall=False):
     """ initialize the bot. """
-    print("")
     global plugin_packages
     try:
         if os.getuid() == 0:
@@ -124,7 +120,6 @@ def boot(ddir=None, force=False, encoding="utf-8", umask=None, saveperms=True, f
     if not shorttable: shorttable = Persist(rundir + os.sep + 'shorttable')
     if clear: shorttable.data = {}
     if not timestamps: timestamps = Persist(rundir + os.sep + 'timestamps')
-    #if clear: timestamps.data = {}
     if not plugwhitelist: plugwhitelist = Persist(rundir + os.sep + 'plugwhitelist')
     if not plugwhitelist.data: plugwhitelist.data = []
     if not plugblacklist: plugblacklist = Persist(rundir + os.sep + 'plugblacklist')
@@ -185,6 +180,9 @@ def boot(ddir=None, force=False, encoding="utf-8", umask=None, saveperms=True, f
         savepluginlist()
         savecallbacktable()
         savealiases()
+    logging.warn("")
+    logging.warn("D O N E")
+    logging.warn("")
 
 ## filestamps stuff
 

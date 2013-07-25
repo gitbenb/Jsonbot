@@ -704,6 +704,7 @@ def hello(): print(make_version() + "\n")
 ## boot function
 
 def Oboot():
+    print("")
     global config
     try: config.opts, config.args = make_opts()
     except SystemExit: os._exit(1)
@@ -1235,9 +1236,9 @@ LEVELS = {'debug': logging.DEBUG,
 
 class Formatter(logging.Formatter):
 
-    """ hooks into the logging system. """
+     """ hooks into the logging system. """
 
-    def format(self, record):
+     def format(self, record):
         target = str(record.msg)
         if not target: target = " "
         if target[0] in [">", ]: target = "%s%s%s%s" % (RED, target[0], ENDC, target[1:])

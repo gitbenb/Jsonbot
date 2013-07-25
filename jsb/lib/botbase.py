@@ -292,15 +292,13 @@ class BotBase(LazyDict):
                 handle_exception()
             time.sleep(3)
 
-    def boot(self):
-        logging.warn("booting %s bot" % self.cfg.name)
+    def boot(self, *args, **kwargs):
         if not self.cfg.type: self.cfg.type = self.type ; self.cfg.save()
         fleet = getfleet()
         fleet.addbot(self)
         fleet.addnametype(self.cfg.name, self.type)
         while 1:
             try:
-                #self.exit(close=False, save=False)
                 self.started = False
                 if self.start(): break
             except Exception, ex:
@@ -312,7 +310,6 @@ class BotBase(LazyDict):
         """ start the mainloop of the bot. """
         if self.started: logging.warn("%s - already started" % self.cfg.name) ; return
         tickloop.start(self)
-        #mainsink.start()
         self.stopped = False
         self.stopreadloop = False
         self.stopoutloop = False
@@ -397,7 +394,6 @@ class BotBase(LazyDict):
             if not e1.stop: last_callbacks.check(self, e1)
         event.callbackdone = True
         waiter.check(self, event)
-        #mainsink.put(5, self, event)
         self.lastiter = time.time()
         self.benice()
         cb.put(Event(**event))
@@ -448,7 +444,6 @@ class BotBase(LazyDict):
         """ output method with OUTPUT event generated. """
         if not self.nocb: self.outmonitor(origin, printto, txt, event=event, plugorigin=plugorigin)
         self.outnocb(printto, txt, how, event=event, origin=origin, plugorigin=plugorigin, *args, **kwargs)
-        #if event: event.ready()
 
     write = out
 

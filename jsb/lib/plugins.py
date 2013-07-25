@@ -87,7 +87,6 @@ class Plugins(LazyDict):
         for module in paths:
             try: imp = _import(module)
             except ImportError, ex:
-                #handle_exception()
                 logging.warn("no %s plugin package found - %s" % (module, str(ex)))
                 continue
             except Exception, ex: handle_exception()

@@ -57,10 +57,7 @@ locked = lockdec(lock)
 
 class Fleet(Persist):
 
-    """
-        a fleet contains multiple bots (list of bots).
-
-    """
+    """ a fleet contains multiple bots (list of bots). """
 
     def __init__(self, datadir):
         Persist.__init__(self, datadir + os.sep + 'fleet' + os.sep + 'fleet.main')
@@ -277,6 +274,9 @@ class Fleet(Persist):
         if todo: start_new_thread(self.startall, (todo, ))
         if done: logging.warn("fleet bots are %s" % ", ".join(done))
         else: logging.warn("no fleet bots are enabled, see %s" % getdatadir() + os.sep + "config" + os.sep +'fleet')
+        logging.warn("")
+        logging.warn("S T A R T")
+        logging.warn("")
 
     def startall(self, bots, usethreads=True):
         threads = []
