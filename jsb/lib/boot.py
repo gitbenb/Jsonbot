@@ -16,7 +16,6 @@ from jsb.lib.jsbimport import _import
 from jsb.utils.lazydict import LazyDict
 from jsb.memcached import startmcdaemon
 from jsb.lib.runner import threadrunner
-from jsb.lib.O import set_core, Oboot
 
 ## basic imports
 
@@ -33,7 +32,7 @@ sys.path.insert(0, os.getcwd() + os.sep + '..')
 
 ## defines
 
-plugin_packages = ['jsb.plugs.O', 'jsb.plugs.core', 'jsb.plugs.common', 'jsb.plugs.socket', 'myplugs', 'myplugs.socket', 'myplugs.common']
+plugin_packages = ['jsb.plugs.core', 'jsb.plugs.common', 'jsb.plugs.socket', 'myplugs', 'myplugs.socket', 'myplugs.common']
 default_plugins = ['jsb.plugs.core.admin', 'jsb.plugs.core.dispatch', 'jsb.plugs.core.plug', 'jsb.lib.periodical']
 default_deny = ["jsb.plugs.socket.fish", ]
 
@@ -180,9 +179,6 @@ def boot(ddir=None, force=False, encoding="utf-8", umask=None, saveperms=True, f
         savepluginlist()
         savecallbacktable()
         savealiases()
-    logging.warn("")
-    logging.warn("D O N E")
-    logging.warn("")
 
 ## filestamps stuff
 

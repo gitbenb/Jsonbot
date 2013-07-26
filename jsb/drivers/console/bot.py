@@ -15,7 +15,6 @@ from jsb.utils.generic import strippedtxt, waitevents
 from jsb.utils.url import striphtml
 from jsb.utils.exception import handle_exception
 from jsb.lib.eventhandler import mainhandler
-from jsb.lib.O import datefmt, YELLOW, RED, BOLD, ENDC
 from event import ConsoleEvent
 
 ## basic imports
@@ -71,6 +70,7 @@ class ConsoleBot(BotBase):
     GREEN = '\033[92m'
     ENDC = '\033[0m'
     COMMON = '\003[9'
+    datefmt = BOLD + BLUE + '%H:%M:%S' + ENDC
 
     def __init__(self, cfg=None, users=None, plugs=None, botname=None, *args, **kwargs):
         BotBase.__init__(self, cfg, users, plugs, botname, *args, **kwargs)
@@ -81,7 +81,7 @@ class ConsoleBot(BotBase):
         self.start(False)
         while not self.stopped: 
             try: 
-                input = console.raw_input("%s -=- %s%s< %s" % (time.strftime(datefmt), BOLD, YELLOW, ENDC))
+                input = console.raw_input("%s -=- %s%s< %s" % (time.strftime(self.datefmt), self.BOLD, self.YELLOW, self.ENDC))
                 if self.stopped: return
                 event = ConsoleEvent()
                 event.parse(self, input, console)
@@ -102,7 +102,7 @@ class ConsoleBot(BotBase):
         console.save_history()
 
     def outnocb(self, printto, txt, *args, **kwargs):
-        self._raw("%s -=- %s%s>%s %s" % (time.strftime(datefmt), BOLD, RED, ENDC, txt))
+        self._raw("%s -=- %s%s>%s %s" % (time.strftime(self.datefmt), self.BOLD, self.RED, self.ENDC, txt))
 
     def action(self, channel, txt, event=None):
         txt = self.normalize(txt)

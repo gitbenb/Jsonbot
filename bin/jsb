@@ -18,6 +18,7 @@ sys.path.insert(0, os.getcwd() + os.sep + "..")
 from jsb.version import getversion
 from jsb.utils.log import setloglevel
 
+
 ## command line parsing
 
 from optparse import OptionParser
@@ -36,6 +37,8 @@ parser.add_option('', '--lazy', action="store_true", default=False, dest='lazy',
 opts, args = parser.parse_args()
 opts.args = args
 
+setloglevel(opts.loglevel or "error")
+
 if not opts.args: print getversion('CONSOLE')
 
 if opts.lazy:
@@ -50,11 +53,6 @@ if opts.datadir:
 if opts.nourl:
     from jsb.utils.url import url_disable
     url_disable()
-
-## Obooting
-
-from jsb.lib.O import Oboot
-Oboot()
 
 ## bitter boot
 
