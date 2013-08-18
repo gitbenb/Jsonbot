@@ -9,27 +9,7 @@ from tweepy.utils import parse_datetime, parse_html_value, parse_a_href, \
 
 class ResultSet(list):
     """A list like object that holds results from a Twitter API query."""
-    def __init__(self, max_id=None, since_id=None):
-        super(ResultSet, self).__init__()
-        self._max_id = max_id
-        self._since_id = since_id
 
-    @property
-    def max_id(self):
-        if self._max_id:
-            return self._max_id
-        ids = self.ids()
-        return max(ids) if ids else None
-
-    @property
-    def since_id(self):
-        if self._since_id:
-            return self._since_id
-        ids = self.ids()
-        return min(ids) if ids else None
-
-    def ids(self):
-        return [item.id for item in self if hasattr(item, 'id')]
 
 class Model(object):
 
@@ -55,8 +35,7 @@ class Model(object):
         """Parse a list of JSON objects into a result set of model instances."""
         results = ResultSet()
         for obj in json_list:
-            if obj:
-                results.append(cls.parse(api, obj))
+            results.append(cls.parse(api, obj))
         return results
 
 
@@ -67,8 +46,7 @@ class Status(Model):
         status = cls(api)
         for k, v in json.items():
             if k == 'user':
-                user_model = getattr(api.parser.model_factory, 'user')
-                user = user_model.parse(api, v)
+                user = User.parse(api, v)
                 setattr(status, 'author', user)
                 setattr(status, 'user', user)  # DEPRECIATED
             elif k == 'created_at':
@@ -79,14 +57,8 @@ class Status(Model):
                     setattr(status, 'source_url', parse_a_href(v))
                 else:
                     setattr(status, k, v)
-                    setattr(status, 'source_url', None)
             elif k == 'retweeted_status':
                 setattr(status, k, Status.parse(api, v))
-            elif k == 'place':
-                if v is not None:
-                    setattr(status, k, Place.parse(api, v))
-                else:
-                    setattr(status, k, None)
             else:
                 setattr(status, k, v)
         return status
@@ -203,16 +175,6 @@ class Friendship(Model):
         return source, target
 
 
-class Category(Model):
-
-    @classmethod
-    def parse(cls, api, json):
-        category = cls(api)
-        for k, v in json.items():
-            setattr(category, k, v)
-        return category
-
-
 class SavedSearch(Model):
 
     @classmethod
@@ -229,18 +191,34 @@ class SavedSearch(Model):
         return self._api.destroy_saved_search(self.id)
 
 
-class SearchResults(ResultSet):
+class SearchResult(Model):
 
     @classmethod
     def parse(cls, api, json):
-        metadata = json['search_metadata']
-        results = SearchResults(metadata.get('max_id'), metadata.get('since_id'))
-        results.refresh_url = metadata.get('refresh_url')
-        results.completed_in = metadata.get('completed_in')
-        results.query = metadata.get('query')
+        result = cls()
+        for k, v in json.items():
+            if k == 'created_at':
+                setattr(result, k, parse_search_datetime(v))
+            elif k == 'source':
+                setattr(result, k, parse_html_value(unescape_html(v)))
+            else:
+                setattr(result, k, v)
+        return result
 
-        for status in json['statuses']:
-            results.append(Status.parse(api, status))
+    @classmethod
+    def parse_list(cls, api, json_list, result_set=None):
+        results = ResultSet()
+        results.max_id = json_list.get('max_id')
+        results.since_id = json_list.get('since_id')
+        results.refresh_url = json_list.get('refresh_url')
+        results.next_page = json_list.get('next_page')
+        results.results_per_page = json_list.get('results_per_page')
+        results.page = json_list.get('page')
+        results.completed_in = json_list.get('completed_in')
+        results.query = json_list.get('query')
+
+        for obj in json_list['results']:
+            results.append(cls.parse(api, obj))
         return results
 
 
@@ -252,8 +230,6 @@ class List(Model):
         for k,v in json.items():
             if k == 'user':
                 setattr(lst, k, User.parse(api, v))
-            elif k == 'created_at':
-                setattr(lst, k, parse_datetime(v))
             else:
                 setattr(lst, k, v)
         return lst
@@ -261,9 +237,7 @@ class List(Model):
     @classmethod
     def parse_list(cls, api, json_list, result_set=None):
         results = ResultSet()
-        if isinstance(json_list, dict):
-            json_list = json_list['lists']
-        for obj in json_list:
+        for obj in json_list['lists']:
             results.append(cls.parse(api, obj))
         return results
 
@@ -300,30 +274,6 @@ class List(Model):
     def is_subscribed(self, id):
         return self._api.is_subscribed_list(self.user.screen_name, self.slug, id)
 
-class Relation(Model):
-    @classmethod
-    def parse(cls, api, json):
-        result = cls(api)
-        for k,v in json.items():
-            if k == 'value' and json['kind'] in ['Tweet', 'LookedupStatus']:
-                setattr(result, k, Status.parse(api, v))
-            elif k == 'results':
-                setattr(result, k, Relation.parse_list(api, v))
-            else:
-                setattr(result, k, v)
-        return result
-
-class Relationship(Model):
-    @classmethod
-    def parse(cls, api, json):
-        result = cls(api)
-        for k,v in json.items():
-            if k == 'connections':
-                setattr(result, 'is_following', 'following' in v)
-                setattr(result, 'is_followed_by', 'followed_by' in v)
-            else:
-                setattr(result, k, v)
-        return result
 
 class JSONModel(Model):
 
@@ -342,70 +292,6 @@ class IDModel(Model):
             return json['ids']
 
 
-class BoundingBox(Model):
-
-    @classmethod
-    def parse(cls, api, json):
-        result = cls(api)
-        if json is not None:
-            for k, v in json.items():
-                setattr(result, k, v)
-        return result
-
-    def origin(self):
-        """
-        Return longitude, latitude of southwest (bottom, left) corner of
-        bounding box, as a tuple.
-
-        This assumes that bounding box is always a rectangle, which
-        appears to be the case at present.
-        """
-        return tuple(self.coordinates[0][0])
-
-    def corner(self):
-        """
-        Return longitude, latitude of northeast (top, right) corner of
-        bounding box, as a tuple.
-
-        This assumes that bounding box is always a rectangle, which
-        appears to be the case at present.
-        """
-        return tuple(self.coordinates[0][2])
-
-
-class Place(Model):
-
-    @classmethod
-    def parse(cls, api, json):
-        place = cls(api)
-        for k, v in json.items():
-            if k == 'bounding_box':
-                # bounding_box value may be null (None.)
-                # Example: "United States" (id=96683cc9126741d1)
-                if v is not None:
-                    t = BoundingBox.parse(api, v)
-                else:
-                    t = v
-                setattr(place, k, t)
-            elif k == 'contained_within':
-                # contained_within is a list of Places.
-                setattr(place, k, Place.parse_list(api, v))
-            else:
-                setattr(place, k, v)
-        return place
-
-    @classmethod
-    def parse_list(cls, api, json_list):
-        if isinstance(json_list, list):
-            item_list = json_list
-        else:
-            item_list = json_list['result']['places']
-
-        results = ResultSet()
-        for obj in item_list:
-            results.append(cls.parse(api, obj))
-        return results
-
 class ModelFactory(object):
     """
     Used by parsers for creating instances
@@ -418,14 +304,9 @@ class ModelFactory(object):
     direct_message = DirectMessage
     friendship = Friendship
     saved_search = SavedSearch
-    search_results = SearchResults
-    category = Category
+    search_result = SearchResult
     list = List
-    relation = Relation
-    relationship = Relationship
 
     json = JSONModel
     ids = IDModel
-    place = Place
-    bounding_box = BoundingBox
 

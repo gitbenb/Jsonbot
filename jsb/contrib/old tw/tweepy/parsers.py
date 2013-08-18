@@ -4,7 +4,6 @@
 
 from tweepy.models import ModelFactory
 from tweepy.utils import import_simplejson
-from tweepy.error import TweepError
 
 
 class Parser(object):
@@ -26,18 +25,6 @@ class Parser(object):
         raise NotImplementedError
 
 
-class RawParser(Parser):
-
-    def __init__(self):
-        pass
-
-    def parse(self, method, payload):
-        return payload
-
-    def parse_error(self, payload):
-        return payload
-
-
 class JSONParser(Parser):
 
     payload_format = 'json'
@@ -51,8 +38,7 @@ class JSONParser(Parser):
         except Exception, e:
             raise TweepError('Failed to parse JSON payload: %s' % e)
 
-        needsCursors = method.parameters.has_key('cursor')
-        if needsCursors and isinstance(json, dict) and 'previous_cursor' in json and 'next_cursor' in json:
+        if isinstance(json, dict) and 'previous_cursor' in json and 'next_cursor' in json:
             cursors = json['previous_cursor'], json['next_cursor']
             return json, cursors
         else:

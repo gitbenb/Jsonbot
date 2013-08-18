@@ -7,7 +7,6 @@ import time
 import htmlentitydefs
 import re
 import locale
-from urllib import quote
 
 
 def parse_datetime(string):
@@ -97,6 +96,3 @@ def list_to_csv(item_list):
     if item_list:
         return ','.join([str(i) for i in item_list])
 
-def urlencode_noplus(query):
-    return '&'.join(['%s=%s' % (quote(str(k), ''), quote(str(v), '')) \
-        for k, v in query.iteritems()])
